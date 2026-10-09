@@ -1,0 +1,68 @@
+{
+  "name": "TLT — Controle Tecnológico",
+  "short_name": "TLT Controle",
+  "description": "Ensaios de solos, CAUQ, concreto e caracterização de insumos, com relatório em PDF e sincronização com a planilha do Drive.",
+  "id": ".",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1B2A33",
+  "theme_color": "#1B2A33",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icone-192-recortavel.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icone-512-recortavel.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Histórico de ensaios",
+      "short_name": "Histórico",
+      "url": "./?aba=historico",
+      "icons": [
+        {
+          "src": "icone-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Lançar ensaio",
+      "short_name": "Ensaio",
+      "url": "./?aba=ensaio",
+      "icons": [
+        {
+          "src": "icone-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

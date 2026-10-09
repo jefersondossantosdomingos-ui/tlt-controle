@@ -748,7 +748,11 @@ details.card > summary::-webkit-details-marker{display:none;}
 .rasc-mini-linha{display:flex; justify-content:flex-end; margin:-4px 0 10px;}
 .rasc-mini-linha label.btn{cursor:pointer;}
 @media print{ .rasc-mini-linha{display:none !important;} }
-.lido-ia{background:var(--mk-acento-50) !important; border-color:var(--mk-acento-600) !important;}
+/* campo preenchido pela IA: tom do acento por cima do fundo do próprio campo, nos dois temas —
+   fundo claro fixo deixava o número branco sobre branco no tema escuro */
+.lido-ia{background-color:color-mix(in srgb, var(--mk-acento-500) 18%, var(--card)) !important;
+  border-color:var(--mk-acento-500) !important; border-width:2px !important; color:var(--text) !important;
+  -webkit-text-fill-color:var(--text) !important;}
 .rasc-fundo{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9000; display:flex;
   align-items:flex-start; justify-content:center; overflow:auto; padding:16px;}
 .rasc-caixa{background:var(--card); color:var(--text); border-radius:var(--radius-sm); max-width:760px; width:100%;

@@ -745,6 +745,9 @@ details.card > summary::-webkit-details-marker{display:none;}
 /* leitura de rascunho */
 .rasc-botoes{display:flex; flex-wrap:wrap; gap:8px;}
 .rasc-botoes label.btn{cursor:pointer;}
+.rasc-mini-linha{display:flex; justify-content:flex-end; margin:-4px 0 10px;}
+.rasc-mini-linha label.btn{cursor:pointer;}
+@media print{ .rasc-mini-linha{display:none !important;} }
 .lido-ia{background:var(--mk-acento-50) !important; border-color:var(--mk-acento-600) !important;}
 .rasc-fundo{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9000; display:flex;
   align-items:flex-start; justify-content:center; overflow:auto; padding:16px;}
@@ -8941,6 +8944,7 @@ function montarCsond() {
   $('csIdent').innerHTML = cartaoRascunho('csident') + `
     <div class="card">
       <h2>Identificação do ensaio <span class="tag">Muda a cada furo</span></h2>
+      ${botaoFotoCard('csident', [0])}
       <div class="grid4">
         ${cab('registro', 'Registro <span class="obrig">obrigatório</span>')}
         ${cab('furo', 'Furo / PI <span class="obrig">obrigatório</span>', 'text', 'Ex.: 1')}
@@ -8956,6 +8960,7 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Obra e material <span class="tag">Também na aba Dados</span></h2>
+      ${botaoFotoCard('csident', [1])}
       <div class="grid4">
         <div style="grid-column:span 2">${cab('obra', 'Obra / rodovia').replace(/^<div>|<\/div>$/g, '')}</div>
         ${cab('camada', 'Utilização prevista (camada)')}
@@ -8966,6 +8971,7 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Compactação <span class="tag">DNER-ME 129 · NBR 7182</span></h2>
+      ${botaoFotoCard('csident', [2])}
       <div class="grid4">
         <div><label>Energia</label>${selCs('ident.energia', ENERGIAS_CS)}</div>
         <div><label>Nº de golpes</label>${nCs('ident.golpes', '1')}</div>
@@ -9086,6 +9092,7 @@ function montarCsond() {
   $('csLimites').innerHTML = cartaoRascunho('cslimites') + `
     <div class="card">
       <h2>Limite de liquidez <span class="tag">NBR 6459</span></h2>
+      ${botaoFotoCard('cslimites', [0])}
       <div class="tabwrap"><table class="t-form t-pontos"><thead><tr><th></th>${P.map(i => `<th>${i + 1}</th>`).join('')}</tr></thead><tbody>
         ${linhaL('ll', 'Cápsula nº (pequena)', 'capsula')}
         ${linhaL('ll', 'Cápsula + solo úmido (g)', 'umidoTara')}
@@ -9098,6 +9105,7 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Limite de plasticidade <span class="tag">NBR 7180</span></h2>
+      ${botaoFotoCard('cslimites', [1])}
       <div class="tabwrap"><table class="t-form t-pontos"><thead><tr><th></th>${P.map(i => `<th>${i + 1}</th>`).join('')}</tr></thead><tbody>
         ${linhaL('lp', 'Cápsula nº (pequena)', 'capsula')}
         ${linhaL('lp', 'Cápsula + solo úmido (g)', 'umidoTara')}
@@ -9120,6 +9128,7 @@ function montarCsond() {
   $('csGranul').innerHTML = cartaoRascunho('csgranul') + `
     <div class="card">
       <h2>Amostra e umidade higroscópica <span class="tag">NBR 7181</span></h2>
+      ${botaoFotoCard('csgranul', [0])}
       <div class="grid4">
         <div><label>Amostra total úmida (g)</label>${nCs('sed.totalUmida')}</div>
         <div><label>Parcial úmida p/ peneiramento fino (g)</label>${nCs('sed.parcialUmida')}</div>
@@ -9135,6 +9144,7 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Peneiramento <span class="tag">Peso retido ACUMULADO</span></h2>
+      ${botaoFotoCard('csgranul', [1, 2])}
       <div class="tabwrap"><table class="t-form">
         <thead><tr><th>Peneira</th><th>mm</th><th>Retido acum. (g)</th><th>% retida acum.</th><th>% passante total</th></tr></thead>
         <tbody>
@@ -9149,6 +9159,7 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Massa específica real dos grãos <span class="tag">picnômetro</span></h2>
+      ${botaoFotoCard('csgranul', [3])}
       <div class="grid4">
         <div><label>Picnômetro nº</label>${capCs('sed.picnometro', 'Picnômetro')}</div>
         <div><label>Picnômetro + água (g)</label><input type="text" id="csGPicAgua" disabled></div>
@@ -9228,6 +9239,7 @@ function montarCsond() {
   $('csMr').innerHTML = cartaoRascunho('csmr') + `
     <div class="card">
       <h2>Dados do corpo de prova <span class="tag">DNIT 134/2018-ME</span></h2>
+      ${botaoFotoCard('csmr', [0])}
       <div class="grid4">
         <div><label>Data do ensaio</label>${dCs('mr.data')}</div>
         <div><label>Laboratório</label>${tCs('mr.laboratorio', '', false)}</div>
@@ -9257,6 +9269,7 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Quadro de resultados <span class="tag">12 pares de tensão</span></h2>
+      ${botaoFotoCard('csmr', [1])}
       <details><summary class="hint">Colar do equipamento</summary>
         <textarea id="csMrTexto" rows="5" placeholder="σ3  σd  δ  ε  MR — uma linha por par de tensões"></textarea>
         <button class="btn sm" type="button" id="csMrColar" style="margin-top:8px">Colar nas linhas</button>
@@ -9738,14 +9751,19 @@ const P5 = [0, 1, 2, 3, 4];
 /* linha de grade: [rótulo, (coluna) => caminho, tipo, unidade] */
 const FICHAS_CS = [
   { aba: 'csident', codigo: 'TLT-R1', titulo: 'Identificação da sondagem',
-    blocos: [{ tipo: 'campos', titulo: 'Identificação', campos: [
-      ['Obra / rodovia', 'medicao.obra', 'texto', 2],
-      ['Pista', 'ident.pista', 'texto'], ['km', 'ident.km', 'num'], ['Lado', 'ident.lado', 'texto'],
-      ['Afastamento (m)', 'ident.afastamento', 'num'], ['Profundidade', 'ident.profundidade', 'texto'],
-      ['Latitude', 'ident.latitude', 'num'], ['Longitude', 'ident.longitude', 'num'],
-      ['Utilização (camada)', 'medicao.camada', 'texto'], ['Material', 'medicao.tipoMaterial', 'texto', 2],
-      ['Energia (N / I / M)', 'ident.energia', 'texto'], ['Nº de golpes', 'ident.golpes', 'num'], ['Nº de camadas', 'ident.camadas', 'num'],
-    ] }] },
+    blocos: [
+      // `cab`: quais quadros do cabeçalho da ficha pertencem a este bloco (leitura de um cartão só)
+      { tipo: 'campos', titulo: 'Identificação do ensaio', cab: ['registro', 'furo', 'data'], campos: [
+        ['Pista', 'ident.pista', 'texto'], ['km', 'ident.km', 'num'], ['Lado', 'ident.lado', 'texto'],
+        ['Afastamento (m)', 'ident.afastamento', 'num'], ['Profundidade', 'ident.profundidade', 'texto'],
+        ['Latitude', 'ident.latitude', 'num'], ['Longitude', 'ident.longitude', 'num']] },
+      { tipo: 'campos', titulo: 'Obra e material', cab: ['laboratorista'], campos: [
+        ['Obra / rodovia', 'medicao.obra', 'texto', 2], ['Utilização (camada)', 'medicao.camada', 'texto'],
+        ['Material', 'medicao.tipoMaterial', 'texto', 2], ['Engenheiro responsável', 'medicao.engenheiro', 'texto']] },
+      { tipo: 'campos', titulo: 'Compactação', campos: [
+        ['Energia (N / I / M)', 'ident.energia', 'texto'], ['Nº de golpes', 'ident.golpes', 'num'],
+        ['Nº de camadas', 'ident.camadas', 'num'], ['Soquete', 'ident.soquete', 'texto']] },
+    ] },
   { aba: 'csproctor', codigo: 'TLT-R2', titulo: 'Compactação (Proctor)',
     blocos: [{ tipo: 'grade', titulo: 'Pontos de compactação', colunas: ['Ponto 1', 'Ponto 2', 'Ponto 3', 'Ponto 4', 'Ponto 5'], idx: P5, linhas: [
       ['Cápsula nº', i => `proctor.${i}.capsula`, 'texto'],
@@ -9812,6 +9830,14 @@ const FICHAS_CS = [
 ];
 
 const fichaDaAba = aba => FICHAS_CS.find(f => f.aba === aba);
+const CAB_TODOS = ['registro', 'furo', 'data', 'laboratorista'];
+
+/** Só alguns blocos da ficha — a leitura de um cartão da tela. */
+function recorteFicha(f, idxs) {
+  const blocos = idxs.map(i => f.blocos[i]).filter(Boolean);
+  return { ...f, blocos, parcial: true, cab: [...new Set(blocos.flatMap(b => b.cab || []))],
+           titulo: f.titulo + ' — ' + blocos.map(b => b.titulo.split(' —')[0]).join(' e ') };
+}
 
 /** Todos os campos de uma ficha: { caminho, rotulo, tipo }. */
 function camposDaFicha(f) {
@@ -9914,8 +9940,14 @@ function instrucaoRascunho(f) {
     ? `• Bloco "${b.titulo}" (quadros com rótulo em cima): ${b.campos.map(([r, c]) => `"${r}" → ${c}`).join('; ')}`
     : `• Tabela "${b.titulo}", colunas da esquerda para a direita: ${b.colunas.join(' | ')}. Linhas (rótulo à esquerda):\n`
       + b.linhas.map(([r, fn]) => `    - "${r}": ${b.idx.map((ix, k) => `${b.colunas[k]} → ${fn(ix)}`).join(', ')}`).join('\n')).join('\n');
-  return `A imagem é a ficha de rascunho "${f.titulo}" (código ${f.codigo} no canto superior direito), preenchida à mão.
-O cabeçalho tem Registro, Furo / PI, Data e Laboratorista (vão em "cabecalho"). Datas são escritas dia/mês/ano.
+  const cab = f.parcial ? f.cab : CAB_TODOS;
+  const abertura = f.parcial
+    ? `Leia SÓ os campos listados abaixo. A imagem pode ser a ficha de rascunho ${f.codigo} (código no canto superior direito), `
+      + `um rascunho livre, uma caderneta ou outro documento com estes dados.`
+      + (cab.length ? `\nNo cabeçalho da ficha, leia só: ${cab.join(', ')} (vão em "cabecalho").` : `\nNão precisa ler o cabeçalho.`)
+    : `A imagem é a ficha de rascunho "${f.titulo}" (código ${f.codigo} no canto superior direito), preenchida à mão.
+O cabeçalho tem Registro, Furo / PI, Data e Laboratorista (vão em "cabecalho").`;
+  return `${abertura} Datas são escritas dia/mês/ano.
 Os dados ficam em${f.blocos.some(x => x.par) ? ' (as tabelas de peneiramento grosso e fino ficam lado a lado)' : ''}:
 ${blocos}
 
@@ -9975,31 +10007,34 @@ let CAMPOS_LIDOS_IA = new Set();    // caminhos preenchidos pela IA, ainda não 
 
 function avisoRasc(aba, html) { const e = $('rascAviso-' + aba); if (e) e.innerHTML = html; }
 
-async function lerRascunhoDaAba(aba, arquivos) {
-  const f = fichaDaAba(aba);
+async function lerRascunhoDaAba(aba, arquivos, blocos = null) {
+  const f = blocos ? recorteFicha(fichaDaAba(aba), blocos) : fichaDaAba(aba);
+  const chave = blocos ? `${aba}-${blocos.join('_')}` : aba;
+  const de_novo = `lerRascunhoDaAba('${aba}', PENDENTES_RASC['${chave}'], ${blocos ? JSON.stringify(blocos) : 'null'})`;
+  const aviso = html => avisoRasc(chave, html);
   if (!nuvem.url) {
-    avisoRasc(aba, '<div class="aviso erro"><span class="ico">✕</span><span>Ligue o app à planilha do Drive (Histórico → '
+    aviso('<div class="aviso erro"><span class="ico">✕</span><span>Ligue o app à planilha do Drive (Histórico → '
       + 'Sincronização com o Drive). É ela que faz a leitura.</span></div>');
     return;
   }
   if (!navigator.onLine) {
-    PENDENTES_RASC[aba] = arquivos;
-    avisoRasc(aba, `<div class="aviso"><span class="ico">!</span><span>Sem internet agora. A foto ficou guardada — toque em
+    PENDENTES_RASC[chave] = arquivos;
+    aviso(`<div class="aviso"><span class="ico">!</span><span>Sem internet agora. A foto ficou guardada — toque em
       <b>Ler de novo</b> quando voltar o sinal (não feche o app).</span></div>
-      <button class="btn sm" type="button" onclick="lerRascunhoDaAba('${aba}', PENDENTES_RASC['${aba}'])">Ler de novo</button>`);
+      <button class="btn sm" type="button" onclick="${de_novo}">Ler de novo</button>`);
     return;
   }
-  avisoRasc(aba, '<div class="aviso agenda"><span class="ico">…</span><span>Lendo o rascunho — leva uns segundos.</span></div>');
+  aviso('<div class="aviso agenda"><span class="ico">…</span><span>Lendo o rascunho — leva uns segundos.</span></div>');
   try {
     const d = await chamarNuvem({ acao: 'lerRascunho', aba, instrucao: instrucaoRascunho(f),
       arquivos: arquivos.map(a => ({ tipo: a.tipo, dados: a.dados })) }, 150000);
-    delete PENDENTES_RASC[aba];
-    avisoRasc(aba, '');
-    abrirConferencia(f, d.dados || {}, arquivos);
+    delete PENDENTES_RASC[chave];
+    aviso('');
+    abrirConferencia(f, d.dados || {}, arquivos, chave);
   } catch (e) {
-    PENDENTES_RASC[aba] = arquivos;
-    avisoRasc(aba, `<div class="aviso erro"><span class="ico">✕</span><span>${e.message}</span></div>
-      <button class="btn sm" type="button" onclick="lerRascunhoDaAba('${aba}', PENDENTES_RASC['${aba}'])">Tentar de novo</button>`);
+    PENDENTES_RASC[chave] = arquivos;
+    aviso(`<div class="aviso erro"><span class="ico">✕</span><span>${e.message}</span></div>
+      <button class="btn sm" type="button" onclick="${de_novo}">Tentar de novo</button>`);
   }
 }
 
@@ -10033,22 +10068,24 @@ function gravarCampoCs(c, v) {
 
 let CONFERENCIA = null;
 
-function abrirConferencia(f, dados, arquivos) {
+function abrirConferencia(f, dados, arquivos, chave = f.aba) {
   const campos = camposDaFicha(f);
   const valores = dados.valores || {}, duvidas = new Set(dados.duvidas || []);
   const cab = dados.cabecalho || {};
   // o cabeçalho da ficha preenche registro, furo e data quando a ficha não é a de identificação
   const ehIdent = f.aba === 'csident';
-  const extra = [['medicao.registro', 'Registro', 'texto', cab.registro], ['medicao.furo', 'Furo / PI', 'texto', cab.furo],
-                 ['medicao.dataEnsaio', 'Data do ensaio', 'data', cab.data],
-                 ['medicao.laboratorista', 'Laboratorista', 'texto', cab.laboratorista]]
+  const permitidos = f.parcial ? f.cab : CAB_TODOS;
+  const extra = [['medicao.registro', 'Registro', 'texto', cab.registro, 'registro'], ['medicao.furo', 'Furo / PI', 'texto', cab.furo, 'furo'],
+                 ['medicao.dataEnsaio', 'Data do ensaio', 'data', cab.data, 'data'],
+                 ['medicao.laboratorista', 'Laboratorista', 'texto', cab.laboratorista, 'laboratorista']]
+    .filter(x => permitidos.includes(x[4]))
     // na ficha de identificação o cabeçalho É o dado; nas outras só completa o que está vazio
     .filter(([c, , , v]) => v && (ehIdent || !String(lerCampoCs(c) ?? '').trim()));
   const linhas = [...extra.map(([caminho, rotulo, tipo, v]) => ({ caminho, rotulo: 'Cabeçalho · ' + rotulo, tipo, lido: normalizarLido(v, tipo) })),
                   ...campos.map(c => ({ ...c, lido: normalizarLido(valores[c.caminho], c.tipo) }))]
     .filter(l => l.lido !== null || duvidas.has(l.caminho));
   linhas.forEach(l => { l.duvida = duvidas.has(l.caminho); l.atual = lerCampoCs(l.caminho); });
-  CONFERENCIA = { f, linhas };
+  CONFERENCIA = { f, linhas, chave };
 
   const fmtV = (v, tipo) => v === null || v === undefined || v === '' ? '—'
     : tipo === 'num' ? String(v).replace('.', ',') : tipo === 'data' ? dataBrCs(v) : atr(v);
@@ -10093,7 +10130,7 @@ function aplicarConferencia() {
     gravarCampoCs(l.caminho, v);
     CAMPOS_LIDOS_IA.add(l.caminho); n++;
   });
-  const aba = CONFERENCIA.f.aba;
+  const aba = CONFERENCIA.chave;
   fecharConferencia();
   montarCsond();
   if (typeof montarDados === 'function') montarDados();
@@ -10133,17 +10170,25 @@ function cartaoRascunho(aba) {
   </div>`;
 }
 
+/** Botão "Ler foto" de um cartão: lê só os blocos daquele cartão. */
+function botaoFotoCard(aba, blocos) {
+  return `<div class="rasc-mini-linha"><label class="btn sm ghost"><input type="file" accept="image/*,application/pdf"
+      data-rascfoto="${aba}" data-rascblocos="${blocos.join(',')}" hidden>📷 Ler foto</label></div>
+    <div id="rascAviso-${aba}-${blocos.join('_')}"></div>`;
+}
+
 function ligarRascunho() {
   document.querySelectorAll('[data-rascfoto]').forEach(el => {
     if (el.dataset.ligado) return;
     el.dataset.ligado = '1';
     el.addEventListener('change', async () => {
       const aba = el.dataset.rascfoto;
+      const blocos = el.dataset.rascblocos ? el.dataset.rascblocos.split(',').map(Number) : null;
       const lista = [...(el.files || [])].slice(0, 4);
       el.value = '';
       if (!lista.length) return;
-      try { lerRascunhoDaAba(aba, await Promise.all(lista.map(prepararArquivo))); }
-      catch (e) { avisoRasc(aba, `<div class="aviso erro"><span class="ico">✕</span><span>${e.message}</span></div>`); }
+      try { lerRascunhoDaAba(aba, await Promise.all(lista.map(prepararArquivo)), blocos); }
+      catch (e) { avisoRasc(blocos ? `${aba}-${blocos.join('_')}` : aba, `<div class="aviso erro"><span class="ico">✕</span><span>${e.message}</span></div>`); }
     });
   });
   document.querySelectorAll('[data-rascficha]').forEach(el => {

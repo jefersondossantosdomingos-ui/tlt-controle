@@ -8947,8 +8947,7 @@ function montarCsond() {
   /* ---------- IDENTIFICAÇÃO ---------- */
   $('csIdent').innerHTML = cartaoRascunho('csident') + `
     <div class="card">
-      <h2>Identificação do ensaio <span class="tag">Muda a cada furo</span></h2>
-      ${botaoFotoCard('csident', [0])}
+      <h2>Identificação do ensaio <span class="tag">Ficha R1 · uma foto lê tudo</span></h2>
       <div class="grid4">
         ${cab('registro', 'Registro <span class="obrig">obrigatório</span>')}
         ${cab('furo', 'Furo / PI <span class="obrig">obrigatório</span>', 'text', 'Ex.: 1')}
@@ -8961,10 +8960,7 @@ function montarCsond() {
         <div><label>Latitude</label>${nCs('ident.latitude', '0.0000001')}</div>
         <div><label>Longitude</label>${nCs('ident.longitude', '0.0000001')}</div>
       </div>
-    </div>
-    <div class="card">
-      <h2>Obra e material <span class="tag">Também na aba Dados</span></h2>
-      ${botaoFotoCard('csident', [1])}
+      <h3 class="sub-card">Obra e material</h3>
       <div class="grid4">
         <div style="grid-column:span 2">${cab('obra', 'Obra / rodovia').replace(/^<div>|<\/div>$/g, '')}</div>
         ${cab('camada', 'Utilização prevista (camada)')}
@@ -8972,10 +8968,7 @@ function montarCsond() {
         ${cab('laboratorista', 'Calculista / laboratorista')}
         ${cab('engenheiro', 'Engenheiro responsável')}
       </div>
-    </div>
-    <div class="card">
-      <h2>Compactação <span class="tag">DNER-ME 129 · NBR 7182</span></h2>
-      ${botaoFotoCard('csident', [2])}
+      <h3 class="sub-card">Compactação — DNER-ME 129 · NBR 7182</h3>
       <div class="grid4">
         <div><label>Energia</label>${selCs('ident.energia', ENERGIAS_CS)}</div>
         <div><label>Nº de golpes</label>${nCs('ident.golpes', '1')}</div>
@@ -9096,7 +9089,6 @@ function montarCsond() {
   $('csLimites').innerHTML = cartaoRascunho('cslimites') + `
     <div class="card">
       <h2>Limite de liquidez <span class="tag">NBR 6459</span></h2>
-      ${botaoFotoCard('cslimites', [0])}
       <div class="tabwrap"><table class="t-form t-pontos"><thead><tr><th></th>${P.map(i => `<th>${i + 1}</th>`).join('')}</tr></thead><tbody>
         ${linhaL('ll', 'Cápsula nº (pequena)', 'capsula')}
         ${linhaL('ll', 'Cápsula + solo úmido (g)', 'umidoTara')}
@@ -9109,7 +9101,6 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Limite de plasticidade <span class="tag">NBR 7180</span></h2>
-      ${botaoFotoCard('cslimites', [1])}
       <div class="tabwrap"><table class="t-form t-pontos"><thead><tr><th></th>${P.map(i => `<th>${i + 1}</th>`).join('')}</tr></thead><tbody>
         ${linhaL('lp', 'Cápsula nº (pequena)', 'capsula')}
         ${linhaL('lp', 'Cápsula + solo úmido (g)', 'umidoTara')}
@@ -9132,7 +9123,6 @@ function montarCsond() {
   $('csGranul').innerHTML = cartaoRascunho('csgranul') + `
     <div class="card">
       <h2>Amostra e umidade higroscópica <span class="tag">NBR 7181</span></h2>
-      ${botaoFotoCard('csgranul', [0])}
       <div class="grid4">
         <div><label>Amostra total úmida (g)</label>${nCs('sed.totalUmida')}</div>
         <div><label>Parcial úmida p/ peneiramento fino (g)</label>${nCs('sed.parcialUmida')}</div>
@@ -9148,7 +9138,6 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Peneiramento <span class="tag">Peso retido ACUMULADO</span></h2>
-      ${botaoFotoCard('csgranul', [1, 2])}
       <div class="tabwrap"><table class="t-form">
         <thead><tr><th>Peneira</th><th>mm</th><th>Retido acum. (g)</th><th>% retida acum.</th><th>% passante total</th></tr></thead>
         <tbody>
@@ -9163,7 +9152,6 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Massa específica real dos grãos <span class="tag">picnômetro</span></h2>
-      ${botaoFotoCard('csgranul', [3])}
       <div class="grid4">
         <div><label>Picnômetro nº</label>${capCs('sed.picnometro', 'Picnômetro')}</div>
         <div><label>Picnômetro + água (g)</label><input type="text" id="csGPicAgua" disabled></div>
@@ -9243,7 +9231,6 @@ function montarCsond() {
   $('csMr').innerHTML = cartaoRascunho('csmr') + `
     <div class="card">
       <h2>Dados do corpo de prova <span class="tag">DNIT 134/2018-ME</span></h2>
-      ${botaoFotoCard('csmr', [0])}
       <div class="grid4">
         <div><label>Data do ensaio</label>${dCs('mr.data')}</div>
         <div><label>Laboratório</label>${tCs('mr.laboratorio', '', false)}</div>
@@ -9273,7 +9260,6 @@ function montarCsond() {
     </div>
     <div class="card">
       <h2>Quadro de resultados <span class="tag">12 pares de tensão</span></h2>
-      ${botaoFotoCard('csmr', [1])}
       <details><summary class="hint">Colar do equipamento</summary>
         <textarea id="csMrTexto" rows="5" placeholder="σ3  σd  δ  ε  MR — uma linha por par de tensões"></textarea>
         <button class="btn sm" type="button" id="csMrColar" style="margin-top:8px">Colar nas linhas</button>
@@ -10164,7 +10150,7 @@ function cartaoRascunho(aba) {
   if (!f) return '';
   return `<div class="card rasc-card">
     <h2>Ler rascunho <span class="tag">${f.codigo}</span></h2>
-    <p class="hint">Fotografe a ficha <b>${f.codigo}</b> preenchida (ou escolha a foto / o PDF). A IA lê, você confere e aplica.</p>
+    <p class="hint">Fotografe a ficha <b>${f.codigo}</b> preenchida (ou escolha a foto / o PDF). Uma foto preenche a aba inteira: a IA lê, você confere e aplica.</p>
     <div class="rasc-botoes">
       <label class="btn"><input type="file" accept="image/*" capture="environment" data-rascfoto="${aba}" hidden>📷 Fotografar</label>
       <label class="btn ghost"><input type="file" accept="image/*,application/pdf" multiple data-rascfoto="${aba}" hidden>Escolher foto ou PDF</label>

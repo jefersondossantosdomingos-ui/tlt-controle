@@ -748,6 +748,7 @@ details.card > summary::-webkit-details-marker{display:none;}
 .rasc-mini-linha{display:flex; justify-content:flex-end; margin:-4px 0 10px;}
 .rasc-mini-linha label.btn{cursor:pointer;}
 @media print{ .rasc-mini-linha{display:none !important;} }
+.modo-csond .nao-csond{display:none !important;}
 /* campo preenchido pela IA: tom do acento por cima do fundo do próprio campo, nos dois temas —
    fundo claro fixo deixava o número branco sobre branco no tema escuro */
 .lido-ia{background-color:color-mix(in srgb, var(--mk-acento-500) 18%, var(--card)) !important;
@@ -1253,11 +1254,7 @@ summary:hover{color:var(--text);}
     <span class="chip ok"><span class="dot"></span>Calculando</span>
   </div>
   <nav class="nav-topo">
-<button type="button" class="ativo" data-aba="dados" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
-    <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-    Dados
-  </button>
-<button type="button" data-aba="ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<button type="button" class="ativo" data-aba="ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
     Ensaio
   </button>
@@ -1279,12 +1276,14 @@ summary:hover{color:var(--text);}
 <div class="wrap">
 
 <!-- ============ ABA 0 · INSERIR DADOS ============ -->
-<section class="aba ativa" id="aba-dados" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba" id="aba-dados" data-modos="nenhum">
 
   <div class="card">
     <h2>Quais dados <span class="tag">Cada família tem os seus</span></h2>
     <div class="modos" id="seletorDados"></div>
   </div>
+
+  <div id="blocoDados" class="bloco-dados">
 
   <div class="card" data-bloco="solos">
     <h2>Período e medição <span class="tag" id="mdStatus">—</span></h2>
@@ -1309,7 +1308,7 @@ summary:hover{color:var(--text);}
   <div class="card" data-bloco="solos">
     <h2>Material <span class="tag">Origem, destino e energia</span></h2>
     <div class="grid4" id="gpMaterial"></div>
-    <p class="hint">
+    <p class="hint nao-csond">
       O <b>Próctor</b> declarado aqui é conferido contra o número de golpes lançado na aba
       Compactação — se um disser Normal e o outro apontar Modificada, o app avisa antes de imprimir.
     </p>
@@ -1432,6 +1431,7 @@ summary:hover{color:var(--text);}
     <h2>Como o cabeçalho vai sair <span class="tag">Prévia</span></h2>
     <div class="previa-wrap" id="mdPreview"></div>
     <p class="hint">Prévia em escala reduzida do bloco que encabeça cada folha do relatório.</p>
+  </div>
   </div>
 </section>
 
@@ -1585,7 +1585,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ ABA 1 · TIPO DE ENSAIO ============ -->
-<section class="aba" id="aba-ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba ativa" id="aba-ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
   <div class="card">
     <h2>Família de ensaios <span class="tag">Material</span></h2>
     <div class="familias" id="familias"></div>
@@ -2223,7 +2223,7 @@ summary:hover{color:var(--text);}
 
 <!-- ============ ABA 8 · RESULTADO ============ -->
 <!-- ============ CAUQ · BETUME ============ -->
-<section class="aba" id="aba-cqbetume" data-fam="cauq" data-modos="marshall">
+<section class="aba" id="aba-cqbetume" data-fam="cauq" data-modos="marshall"><div data-rascslot="cqbetume"></div><div data-dadosslot="marshall"></div>
   <div class="card">
     <h2>Temperaturas <span class="tag">Registro de pista</span></h2>
     <div class="grid2">
@@ -2280,7 +2280,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CAUQ · GRANULOMETRIA DA MISTURA ============ -->
-<section class="aba" id="aba-cqgranul" data-fam="cauq" data-modos="marshall">
+<section class="aba" id="aba-cqgranul" data-fam="cauq" data-modos="marshall"><div data-rascslot="cqgranul"></div>
   <div class="card">
     <h2>Granulometria da mistura extraída <span class="tag">DNIT 412/2019</span></h2>
     <p class="hint" style="margin:0 0 14px">
@@ -2312,7 +2312,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CAUQ · RICE ============ -->
-<section class="aba" id="aba-cqrice" data-fam="cauq" data-modos="marshall">
+<section class="aba" id="aba-cqrice" data-fam="cauq" data-modos="marshall"><div data-rascslot="cqrice"></div>
   <div class="card">
     <h2>Densidade máxima medida <span class="tag">Rice test · DNIT 427/2020</span></h2>
     <div class="grid2">
@@ -2346,7 +2346,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CAUQ · MARSHALL ============ -->
-<section class="aba" id="aba-cqmarshall" data-fam="cauq" data-modos="marshall">
+<section class="aba" id="aba-cqmarshall" data-fam="cauq" data-modos="marshall"><div data-rascslot="cqmarshall"></div>
   <div class="card">
     <h2>Corpos de prova <span class="tag">DNIT 447/2024</span></h2>
     <div class="tabwrap">
@@ -2382,7 +2382,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CAUQ · TRAÇÃO ============ -->
-<section class="aba" id="aba-cqtracao" data-fam="cauq" data-modos="marshall">
+<section class="aba" id="aba-cqtracao" data-fam="cauq" data-modos="marshall"><div data-rascslot="cqtracao"></div>
   <div class="card">
     <h2>Resistência à tração por compressão diametral <span class="tag">DNIT 136/2018</span></h2>
     <div class="tabwrap">
@@ -2402,7 +2402,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CAUQ · EQUIVALENTE DE AREIA ============ -->
-<section class="aba" id="aba-cqareia" data-fam="cauq" data-modos="marshall">
+<section class="aba" id="aba-cqareia" data-fam="cauq" data-modos="marshall"><div data-rascslot="cqareia"></div>
   <div class="card">
     <h2>Equivalente de areia da mistura <span class="tag">DNIT 450/2024</span></h2>
     <div class="tabwrap">
@@ -2423,26 +2423,26 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ MARSHALL 031/2024 ============ -->
-<section class="aba" id="aba-csident" data-fam="solos" data-modos="csond"><div id="csIdent"></div></section>
-<section class="aba" id="aba-csproctor" data-fam="solos" data-modos="csond"><div id="csProctor"></div></section>
-<section class="aba" id="aba-csisc" data-fam="solos" data-modos="csond"><div id="csIsc"></div></section>
-<section class="aba" id="aba-cslimites" data-fam="solos" data-modos="csond"><div id="csLimites"></div></section>
-<section class="aba" id="aba-csgranul" data-fam="solos" data-modos="csond"><div id="csGranul"></div></section>
-<section class="aba" id="aba-cssed" data-fam="solos" data-modos="csond"><div id="csSed"></div></section>
-<section class="aba" id="aba-csmct" data-fam="solos" data-modos="csond"><div id="csMct"></div></section>
-<section class="aba" id="aba-csmr" data-fam="solos" data-modos="csond"><div id="csMr"></div></section>
-<section class="aba" id="aba-m31proj" data-fam="cauq" data-modos="m031"><div id="m31Projeto"></div></section>
-<section class="aba" id="aba-m31granul" data-fam="cauq" data-modos="m031"><div id="m31Granul"></div></section>
-<section class="aba" id="aba-m31rice" data-fam="cauq" data-modos="m031"><div id="m31Rice"></div></section>
-<section class="aba" id="aba-m31marshall" data-fam="cauq" data-modos="m031"><div id="m31Marshall"></div></section>
-<section class="aba" id="aba-m31rtd" data-fam="cauq" data-modos="m031"><div id="m31Rtd"></div></section>
-<section class="aba" id="aba-m31agreg" data-fam="cauq" data-modos="m031"><div id="m31Agreg"></div></section>
+<section class="aba" id="aba-csident" data-fam="solos" data-modos="csond"><div id="csIdent"></div><div data-dadosslot="csond"></div><div id="csIdentExtra"></div><div data-pdfslot="csident"></div></section>
+<section class="aba" id="aba-csproctor" data-fam="solos" data-modos="csond"><div id="csProctor"></div><div data-pdfslot="csproctor"></div></section>
+<section class="aba" id="aba-csisc" data-fam="solos" data-modos="csond"><div id="csIsc"></div><div data-pdfslot="csisc"></div></section>
+<section class="aba" id="aba-cslimites" data-fam="solos" data-modos="csond"><div id="csLimites"></div><div data-pdfslot="cslimites"></div></section>
+<section class="aba" id="aba-csgranul" data-fam="solos" data-modos="csond"><div id="csGranul"></div><div data-pdfslot="csgranul"></div></section>
+<section class="aba" id="aba-cssed" data-fam="solos" data-modos="csond"><div id="csSed"></div><div data-pdfslot="cssed"></div></section>
+<section class="aba" id="aba-csmct" data-fam="solos" data-modos="csond"><div id="csMct"></div><div data-pdfslot="csmct"></div></section>
+<section class="aba" id="aba-csmr" data-fam="solos" data-modos="csond"><div id="csMr"></div><div data-pdfslot="csmr"></div></section>
+<section class="aba" id="aba-m31proj" data-fam="cauq" data-modos="m031"><div data-rascslot="m31proj"></div><div data-dadosslot="m031"></div><div id="m31Projeto"></div></section>
+<section class="aba" id="aba-m31granul" data-fam="cauq" data-modos="m031"><div data-rascslot="m31granul"></div><div id="m31Granul"></div></section>
+<section class="aba" id="aba-m31rice" data-fam="cauq" data-modos="m031"><div data-rascslot="m31rice"></div><div id="m31Rice"></div></section>
+<section class="aba" id="aba-m31marshall" data-fam="cauq" data-modos="m031"><div data-rascslot="m31marshall"></div><div id="m31Marshall"></div></section>
+<section class="aba" id="aba-m31rtd" data-fam="cauq" data-modos="m031"><div data-rascslot="m31rtd"></div><div id="m31Rtd"></div></section>
+<section class="aba" id="aba-m31agreg" data-fam="cauq" data-modos="m031"><div data-rascslot="m31agreg"></div><div id="m31Agreg"></div></section>
 
 <!-- ============ APLICAÇÃO DE C.A.U.Q ============ -->
-<section class="aba" id="aba-aplicacao" data-fam="cauq" data-modos="aplicacao"><div id="apConteudo"></div></section>
+<section class="aba" id="aba-aplicacao" data-fam="cauq" data-modos="aplicacao"><div data-rascslot="aplicacao"></div><div data-dadosslot="aplicacao"></div><div id="apConteudo"></div></section>
 
 <!-- ============ CAUQ · SONDAGEM COM SONDA ROTATIVA ============ -->
-<section class="aba" id="aba-sondagem" data-fam="cauq" data-modos="sondagem">
+<section class="aba" id="aba-sondagem" data-fam="cauq" data-modos="sondagem"><div data-rascslot="sondagem"></div><div data-dadosslot="sondagem"></div>
   <div class="card">
     <h2>Condições do lote <span class="tag">Valem para todos os furos</span></h2>
     <div class="grid4">
@@ -2527,7 +2527,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CONCRETO · PEÇA CONCRETADA ============ -->
-<section class="aba" id="aba-cbpeca" data-fam="concreto">
+<section class="aba" id="aba-cbpeca" data-fam="concreto"><div data-rascslot="cbpeca"></div><div data-dadosslot="concreto"></div>
   <div class="card">
     <h2>Peça concretada <span class="tag">Um RG por ensaio</span></h2>
     <p class="hint" style="margin:0 0 14px">
@@ -2566,7 +2566,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ CONCRETO · ROMPIMENTO ============ -->
-<section class="aba" id="aba-cbrompimento" data-fam="concreto">
+<section class="aba" id="aba-cbrompimento" data-fam="concreto"><div data-rascslot="cbrompimento"></div>
   <div class="card">
     <h2>Corpos de prova <span class="tag">NBR 5739</span></h2>
     <div class="tabwrap">
@@ -2626,7 +2626,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ INSUMOS · FINURA DO CIMENTO ============ -->
-<section class="aba" id="aba-infinura" data-fam="insumos">
+<section class="aba" id="aba-infinura" data-fam="insumos"><div data-rascslot="infinura"></div><div data-dadosslot="insumos"></div>
   <div class="card">
     <h2>Finura do cimento Portland <span class="tag">NBR 11579</span></h2>
     <div class="grid4">
@@ -2658,7 +2658,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ INSUMOS · ABRASÃO LOS ANGELES ============ -->
-<section class="aba" id="aba-inabrasao" data-fam="insumos">
+<section class="aba" id="aba-inabrasao" data-fam="insumos"><div data-rascslot="inabrasao"></div>
   <div class="card">
     <h2>Abrasão Los Angeles <span class="tag">DNER-ME 035/98</span></h2>
     <div class="grid4">
@@ -2687,7 +2687,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ INSUMOS · ÍNDICE DE FORMA ============ -->
-<section class="aba" id="aba-informa" data-fam="insumos">
+<section class="aba" id="aba-informa" data-fam="insumos"><div data-rascslot="informa"></div>
   <div class="card">
     <h2>Granulometria da amostra <span class="tag">Define a graduação a ensaiar</span></h2>
     <div class="grid4">
@@ -2736,7 +2736,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ INSUMOS · MASSA UNITÁRIA ============ -->
-<section class="aba" id="aba-inmassa" data-fam="insumos">
+<section class="aba" id="aba-inmassa" data-fam="insumos"><div data-rascslot="inmassa"></div>
   <div class="card">
     <h2>Massa unitária no estado solto <span class="tag">DNER-ME 152/95</span></h2>
     <div class="grid4">
@@ -2764,7 +2764,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ INSUMOS · DURABILIDADE ============ -->
-<section class="aba" id="aba-indurab" data-fam="insumos">
+<section class="aba" id="aba-indurab" data-fam="insumos"><div data-rascslot="indurab"></div>
   <div class="card">
     <h2>Durabilidade do agregado graúdo <span class="tag">DNER-ME 089/94 · 5 ciclos</span></h2>
     <div class="grid4">
@@ -2811,7 +2811,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ INSUMOS · EQUIVALENTE DE AREIA ============ -->
-<section class="aba" id="aba-inareia" data-fam="insumos">
+<section class="aba" id="aba-inareia" data-fam="insumos"><div data-rascslot="inareia"></div>
   <div class="card">
     <h2>Equivalente de areia <span class="tag">DNER-ME 054/94</span></h2>
     <div class="grid4">
@@ -5422,7 +5422,7 @@ const acharPor = (lista, numero) =>
 function cilindroDe(numero) {
   const m = acharPor(estado.equip.cilindros, numero);
   if (!m) throw new Error(`Cilindro nº ${numero} não está no cadastro de equipamentos. `
-    + `Abra a aba Dados e acrescente, ou escolha outro cilindro.`);
+    + `Abra a aba Equipam. e acrescente, ou escolha outro cilindro.`);
   const volume = ehNumero(m.volume) ? m.volume
     : (ehNumero(m.diametro) && ehNumero(m.altura) ? volumeCilindro(m.diametro, m.altura) : null);
   if (!ehNumero(volume))
@@ -5444,7 +5444,7 @@ function capsulaDe(numero, grupo = 'capsulas') {
 function frascoDe(numero) {
   const f = acharPor(estado.equip.frascos, numero);
   if (!f) throw new Error(`Frasco de areia nº ${numero} não está no cadastro de equipamentos. `
-    + `Abra a aba Dados e acrescente.`);
+    + `Abra a aba Equipam. e acrescente.`);
   return f;
 }
 
@@ -7790,7 +7790,7 @@ function montarM031() {
         ${idCampo('estacaFinal', 'Estaca final', 'text', 'Ex.: 150+0')}
         ${idCampo('cota', 'Cota')}
       </div>
-      <p class="hint">A obra, o cliente, a usina e a medição ficam na aba Dados e valem para
+      <p class="hint">A obra, o cliente, a usina e a medição ficam na 1ª aba (Projeto) e valem para
         todos os ensaios; aqui entra só o que identifica este.</p>
     </div>
     <div class="card">
@@ -8419,7 +8419,7 @@ function montarAplicacao() {
         ${idC('dataEnsaio', 'Data', 'date')}
         ${idC('lado', 'Posição', 'text', 'LE, LD ou EIXO')}
       </div>
-      <p class="hint">Obra, usina e medição vêm da aba Dados.</p>
+      <p class="hint">Obra, usina e medição ficam nos cartões de dados logo acima.</p>
     </div>
 
     <div class="card">
@@ -8976,6 +8976,8 @@ function montarCsond() {
         <div><label>Soquete</label>${tCs('ident.soquete')}</div>
       </div>
     </div>
+`;
+  $('csIdentExtra').innerHTML = `
     <div class="card">
       <h2>Fichas de rascunho <span class="tag">8 folhas A4</span></h2>
       <p class="hint" style="margin:0 0 12px">Imprima o jogo em branco para a bancada: só o que se anota, em quadros grandes.
@@ -9819,8 +9821,21 @@ const FICHAS_CS = [
     ] },
 ];
 
-const fichaDaAba = aba => FICHAS_CS.find(f => f.aba === aba);
+FICHAS_CS.forEach(f => { f.modo = 'csond'; });
+/* cabeçalho das fichas da sondagem: [rótulo, chave no JSON, caminho, tipo] */
+const CAB_CS = [['Registro', 'registro', 'medicao.registro', 'texto'], ['Furo / PI', 'furo', 'medicao.furo', 'texto'],
+  ['Data', 'data', 'medicao.dataEnsaio', 'data'], ['Laboratorista', 'laboratorista', 'medicao.laboratorista', 'texto']];
 const CAB_TODOS = ['registro', 'furo', 'data', 'laboratorista'];
+const todasFichas = () => [...FICHAS_CS, ...(typeof FICHAS_OUTRAS !== 'undefined' ? FICHAS_OUTRAS : [])];
+const _val = v => typeof v === 'function' ? v() : v;
+/** A ficha com títulos e colunas que dependem do ensaio (nomes dos agregados, graduação) já resolvidos. */
+function resolverFicha(f) {
+  if (!f) return f;
+  return { ...f, blocos: f.blocos.map(b => ({ ...b, titulo: _val(b.titulo), colunas: _val(b.colunas), idx: _val(b.idx) })) };
+}
+const fichaDaAba = aba => resolverFicha(todasFichas().find(f => f.aba === aba));
+const cabDaFicha = f => f.cabs || CAB_CS;
+const fichasDoModo = (modo = estado.modo) => todasFichas().filter(f => f.modo === modo).map(f => f.aba);
 
 /** Só alguns blocos da ficha — a leitura de um cartão da tela. */
 function recorteFicha(f, idxs) {
@@ -9834,9 +9849,10 @@ function camposDaFicha(f) {
   const saida = [], varias = f.blocos.filter(b => b.tipo === 'grade').length > 1;
   f.blocos.forEach(b => {
     const pre = varias ? b.titulo.split(' —')[0].split(' (')[0] + ' · ' : '';
-    if (b.tipo === 'campos') b.campos.forEach(([rot, c, tipo]) => saida.push({ caminho: c, rotulo: `${rot}`, tipo }));
-    else b.linhas.forEach(([rot, fn, tipo]) => b.idx.forEach((ix, k) =>
-      saida.push({ caminho: fn(ix), rotulo: `${pre}${rot}${b.colunas.length > 1 ? ' · ' + b.colunas[k] : ''}`, tipo })));
+    if (b.tipo === 'campos') b.campos.forEach(([rot, c, tipo, , sel]) => saida.push({ caminho: c, rotulo: `${rot}`, tipo, sel, add: b.add }));
+    else b.linhas.forEach(([rot, fn, tipo, , fsel]) => b.idx.forEach((ix, k) =>
+      saida.push({ caminho: fn(ix), rotulo: `${pre}${rot}${b.colunas.length > 1 ? ' · ' + b.colunas[k] : ''}`,
+                   tipo: b.tipos ? b.tipos[k] : tipo, sel: fsel ? fsel(ix) : undefined, add: b.add })));
   });
   return saida;
 }
@@ -9849,7 +9865,7 @@ function camposDaFicha(f) {
  * `preenchido` (opcional) escreve valores nos quadros — serve para gerar fichas de
  * exemplo/teste: { valores: { caminho: 'texto' }, cab: { registro, furo, data, laboratorista }, css }.
  */
-function htmlFichasRascunho(abas = FICHAS_CS.map(f => f.aba), preenchido = null) {
+function htmlFichasRascunho(abas = fichasDoModo(), preenchido = null) {
   const V = c => (preenchido && preenchido.valores[c] !== undefined && preenchido.valores[c] !== null)
     ? `<span class="mao">${atr(preenchido.valores[c])}</span>` : '';
   const CB = k => preenchido && preenchido.cab && preenchido.cab[k] ? `<span class="mao">${atr(preenchido.cab[k])}</span>` : '';
@@ -9858,7 +9874,7 @@ function htmlFichasRascunho(abas = FICHAS_CS.map(f => f.aba), preenchido = null)
     const um = b => {
       if (b.tipo === 'campos') return `<h3>${b.titulo}</h3><div class="campos">${b.campos.map(([rot, c, tipo, larg]) =>
         `<div class="c${larg ? ' l' + larg : ''}"><span>${rot}</span><div class="q${tipo === 'data' && !V(c) ? ' data' : ''}">${V(c) || (tipo === 'data' ? '<i>dia</i>/<i>mês</i>/<i>ano</i>' : '')}</div></div>`).join('')}</div>`;
-      return `<h3>${b.titulo}</h3><table><thead><tr><th></th>${b.colunas.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+      return `<h3>${b.titulo}</h3><table${b.colunas.length >= 6 ? ' class="muitas"' : ''}><thead><tr><th></th>${b.colunas.map(c => `<th>${c}</th>`).join('')}</tr></thead>
         <tbody>${b.linhas.map(([rot, fn]) => `<tr><th>${rot}</th>${b.idx.map(ix => `<td>${V(fn(ix))}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
     };
     // blocos marcados como par ficam lado a lado (peneiramento grosso e fino)
@@ -9873,14 +9889,14 @@ function htmlFichasRascunho(abas = FICHAS_CS.map(f => f.aba), preenchido = null)
     return `<section class="pg${compacta}">
       <header>${logo ? `<img src="${logo}" alt="">` : ''}<div><b>RASCUNHO</b><h1>${f.titulo}</h1></div>
         <div class="cod">${f.codigo}</div></header>
-      <div class="idt"><div><span>Registro</span><div class="q">${CB('registro')}</div></div><div><span>Furo / PI</span><div class="q">${CB('furo')}</div></div>
-        <div><span>Data</span><div class="q${CB('data') ? '' : ' data'}">${CB('data') || '<i>dia</i>/<i>mês</i>/<i>ano</i>'}</div></div><div><span>Laboratorista</span><div class="q">${CB('laboratorista')}</div></div></div>
+      <div class="idt" style="grid-template-columns:${cabDaFicha(f).map(c => c[1] === 'laboratorista' ? '1.6fr' : c[3] === 'data' ? '1.3fr' : '1fr').join(' ')}">${
+        cabDaFicha(f).map(([rot, k, , tipo]) => `<div><span>${rot}</span><div class="q${tipo === 'data' && !CB(k) ? ' data' : ''}">${CB(k) || (tipo === 'data' ? '<i>dia</i>/<i>mês</i>/<i>ano</i>' : '')}</div></div>`).join('')}</div>
       <p class="reg">Caneta preta · um valor por quadro · vírgula bem marcada (106,43) · nada fora dos quadros · erro: risque e escreva ao lado, dentro do quadro.</p>
       ${blocos}
       <footer>${f.codigo} · ${f.titulo} · fotografe a folha inteira, de frente, com boa luz</footer></section>`;
   };
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Fichas de rascunho — Caracterização de sondagem</title><style>
+  <title>Fichas de rascunho — ${atr((MODOS[(fichaDaAba(abas[0]) || {}).modo] || {}).nome || 'ensaio')}</title><style>
   @page{size:A4;margin:10mm}
   *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#000;background:#fff}
   .pg{width:186mm;min-height:268mm;margin:0 auto;page-break-after:always;padding:2mm 0}
@@ -9898,7 +9914,8 @@ function htmlFichasRascunho(abas = FICHAS_CS.map(f => f.aba), preenchido = null)
   .reg{font-size:9pt;margin:2mm 0 1mm;padding:2mm;border:0.3mm dashed #000}
   h3{font-size:12pt;margin:4mm 0 1.5mm;text-transform:uppercase;letter-spacing:.5px}
   .campos{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
-  .c.l2{grid-column:span 2}
+  .c.l2{grid-column:span 2} .c.l3{grid-column:span 3}
+  table.muitas tbody th{width:30mm;font-size:9.5pt} table.muitas thead th{font-size:9.5pt}
   table{width:100%;border-collapse:collapse;table-layout:fixed}
   th,td{border:0.5mm solid #000;font-size:10.5pt}
   thead th{background:#e6e6e6;height:8mm} tbody th{text-align:left;padding:0 2mm;width:46mm;font-weight:700;background:#f3f3f3}
@@ -9906,7 +9923,7 @@ function htmlFichasRascunho(abas = FICHAS_CS.map(f => f.aba), preenchido = null)
   footer{margin-top:4mm;font-size:8pt;color:#444;border-top:0.3mm solid #000;padding-top:1.5mm}
   ${preenchido && preenchido.css ? preenchido.css : ''}
   @media screen{body{background:#ccc}.pg{background:#fff;margin:8mm auto;padding:10mm;box-shadow:0 1px 6px rgba(0,0,0,.3)}}
-  </style></head><body>${abas.map(a => pagina(fichaDaAba(a))).join('')}</body></html>`;
+  </style></head><body>${abas.map(a => fichaDaAba(a)).filter(Boolean).map(pagina).join('')}</body></html>`;
 }
 
 function abrirFichasRascunho(abas) {
@@ -9930,28 +9947,31 @@ function instrucaoRascunho(f) {
     ? `• Bloco "${b.titulo}" (quadros com rótulo em cima): ${b.campos.map(([r, c]) => `"${r}" → ${c}`).join('; ')}`
     : `• Tabela "${b.titulo}", colunas da esquerda para a direita: ${b.colunas.join(' | ')}. Linhas (rótulo à esquerda):\n`
       + b.linhas.map(([r, fn]) => `    - "${r}": ${b.idx.map((ix, k) => `${b.colunas[k]} → ${fn(ix)}`).join(', ')}`).join('\n')).join('\n');
-  const cab = f.parcial ? f.cab : CAB_TODOS;
+  const cab = f.parcial ? f.cab : cabDaFicha(f).map(c => c[1]);
+  const cs = f.modo === 'csond';
   const abertura = f.parcial
     ? `Leia SÓ os campos listados abaixo. A imagem pode ser a ficha de rascunho ${f.codigo} (código no canto superior direito), `
       + `um rascunho livre, uma caderneta ou outro documento com estes dados.`
       + (cab.length ? `\nNo cabeçalho da ficha, leia só: ${cab.join(', ')} (vão em "cabecalho").` : `\nNão precisa ler o cabeçalho.`)
     : `A imagem é a ficha de rascunho "${f.titulo}" (código ${f.codigo} no canto superior direito), preenchida à mão.
-O cabeçalho tem Registro, Furo / PI, Data e Laboratorista (vão em "cabecalho").`;
+O cabeçalho tem ${cabDaFicha(f).map(c => c[0]).join(', ')} (vão em "cabecalho").`;
   return `${abertura} Datas são escritas dia/mês/ano.
 Os dados ficam em${f.blocos.some(x => x.par) ? ' (as tabelas de peneiramento grosso e fino ficam lado a lado)' : ''}:
 ${blocos}
 
 Também pode ser um rascunho livre ou a folha impressa da planilha com os mesmos dados — nesse caso, ache cada valor pelo rótulo.
-Ignore valores calculados (água, solo seco, umidade, densidade, pressão, ISC): leia só o que está listado acima.
-Na folha impressa da planilha, a penetração do ISC vem em pares LEIT./PRESS. para 5 pontos: leia a coluna LEIT. dos pontos 2, 3 e 4.
+${cs ? `Ignore valores calculados (água, solo seco, umidade, densidade, pressão, ISC): leia só o que está listado acima.
+Na folha impressa da planilha, a penetração do ISC vem em pares LEIT./PRESS. para 5 pontos: leia a coluna LEIT. dos pontos 2, 3 e 4.`
+  : 'Ignore valores calculados (teor, densidades, vazios, resistências, médias): leia só o que está listado acima.'}
 
 Responda só com este JSON:
 {"ficha": "código lido no topo ou null",
- "cabecalho": {"registro": "...", "furo": "...", "data": "AAAA-MM-DD", "laboratorista": "..."},
+ "cabecalho": {${cabDaFicha(f).map(c => `"${c[1]}": ${c[3] === 'data' ? '"AAAA-MM-DD"' : '"..."'}`).join(', ')}},
  "valores": {"<caminho>": valor, ...},
  "duvidas": ["<caminho>", ...]}
 - Use exatamente os caminhos indicados (ex.: "${camposDaFicha(f)[0].caminho}").
-- Número: valor JSON com ponto decimal (106,43 → 106.43). Datas: "AAAA-MM-DD". Cápsula, cilindro, anel e picnômetro: texto com o número ("8", "110").
+- Número: valor JSON com ponto decimal (106,43 → 106.43). Datas: "AAAA-MM-DD" (sem ano escrito, use o ano da data do cabeçalho). Cápsula, cilindro, anel, picnômetro, CP, placa e estaca: texto como escrito ("8", "110", "120+10").
+- Campos de escolha (método, material, graduação, posição, unidade): o texto como está no papel.
 - Quadro em branco: não ponha o caminho em "valores".
 - Valor que você não leu com certeza (borrado, rasurado, ambíguo como 1/7 ou 3/8): ponha o seu melhor palpite em "valores" E o caminho em "duvidas".`;
 }
@@ -10056,6 +10076,49 @@ function gravarCampoCs(c, v) {
   else gravarCs(c, v);
 }
 
+/* campos da tela (fichas dos demais ensaios): o valor entra no campo e o ensaio recalcula sozinho */
+const semAcentoRasc = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
+let LIDOS_TELA = new Set();   // seletores preenchidos pela IA, ainda não mexidos
+
+function acharCampoRasc(l) {
+  let el = document.querySelector(l.sel);
+  // linha que ainda não existe (mais caminhões, furos ou CPs que o padrão): acrescenta
+  for (let n = 0; !el && l.add && n < 40; n++) {
+    const b = document.querySelector(l.add);
+    if (!b) break;
+    b.click();
+    el = document.querySelector(l.sel);
+  }
+  return el;
+}
+
+function lerCampo(l) {
+  if (!l.sel) return lerCampoCs(l.caminho);
+  const el = document.querySelector(l.sel);
+  if (!el) return null;
+  if (el.tagName === 'SELECT') return el.selectedIndex >= 0 ? el.options[el.selectedIndex].textContent.trim() : null;
+  return el.value === '' ? null : el.value;
+}
+
+function gravarCampo(l, v) {
+  if (!l.sel) { gravarCampoCs(l.caminho, v); return true; }
+  const el = acharCampoRasc(l);
+  if (!el) return false;
+  if (el.tagName === 'SELECT') {
+    if (v === null) return false;
+    const alvo = semAcentoRasc(v), ops = [...el.options];
+    const op = ops.find(o => semAcentoRasc(o.value) === alvo || semAcentoRasc(o.textContent) === alvo)
+      || ops.find(o => o.textContent.trim() && semAcentoRasc(o.textContent).startsWith(alvo))
+      || ops.find(o => o.textContent.trim() && semAcentoRasc(o.textContent).includes(alvo))
+      || ops.find(o => o.textContent.trim() && alvo.includes(semAcentoRasc(o.textContent)));
+    if (!op) return false;
+    el.value = op.value;
+  } else el.value = v === null ? '' : String(v);
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  return true;
+}
+
 let CONFERENCIA = null;
 
 function abrirConferencia(f, dados, arquivos, chave = f.aba) {
@@ -10063,18 +10126,15 @@ function abrirConferencia(f, dados, arquivos, chave = f.aba) {
   const valores = dados.valores || {}, duvidas = new Set(dados.duvidas || []);
   const cab = dados.cabecalho || {};
   // o cabeçalho da ficha preenche registro, furo e data quando a ficha não é a de identificação
-  const ehIdent = f.aba === 'csident';
-  const permitidos = f.parcial ? f.cab : CAB_TODOS;
-  const extra = [['medicao.registro', 'Registro', 'texto', cab.registro, 'registro'], ['medicao.furo', 'Furo / PI', 'texto', cab.furo, 'furo'],
-                 ['medicao.dataEnsaio', 'Data do ensaio', 'data', cab.data, 'data'],
-                 ['medicao.laboratorista', 'Laboratorista', 'texto', cab.laboratorista, 'laboratorista']]
-    .filter(x => permitidos.includes(x[4]))
-    // na ficha de identificação o cabeçalho É o dado; nas outras só completa o que está vazio
-    .filter(([c, , , v]) => v && (ehIdent || !String(lerCampoCs(c) ?? '').trim()));
-  const linhas = [...extra.map(([caminho, rotulo, tipo, v]) => ({ caminho, rotulo: 'Cabeçalho · ' + rotulo, tipo, lido: normalizarLido(v, tipo) })),
-                  ...campos.map(c => ({ ...c, lido: normalizarLido(valores[c.caminho], c.tipo) }))]
+  // na 1ª ficha do ensaio o cabeçalho É o dado; nas outras só completa o que está vazio
+  const ehIdent = f.primeira || f.aba === 'csident';
+  const permitidos = f.parcial ? f.cab : cabDaFicha(f).map(c => c[1]);
+  const extra = cabDaFicha(f).filter(c => permitidos.includes(c[1]))
+    .map(([rot, k, caminho, tipo, sel]) => ({ caminho, rotulo: 'Cabeçalho · ' + rot, tipo, sel, lido: normalizarLido(cab[k], tipo) }))
+    .filter(l => l.lido !== null && (ehIdent || !String(lerCampo(l) ?? '').trim()));
+  const linhas = [...extra, ...campos.map(c => ({ ...c, lido: normalizarLido(valores[c.caminho], c.tipo) }))]
     .filter(l => l.lido !== null || duvidas.has(l.caminho));
-  linhas.forEach(l => { l.duvida = duvidas.has(l.caminho); l.atual = lerCampoCs(l.caminho); });
+  linhas.forEach(l => { l.duvida = duvidas.has(l.caminho); l.atual = lerCampo(l); });
   CONFERENCIA = { f, linhas, chave };
 
   const fmtV = (v, tipo) => v === null || v === undefined || v === '' ? '—'
@@ -10117,20 +10177,31 @@ function aplicarConferencia() {
   CONFERENCIA.linhas.forEach((l, i) => {
     if (!caixa.querySelector(`[data-rascsel="${i}"]`).checked) return;
     const v = normalizarLido(caixa.querySelector(`[data-rascval="${i}"]`).value, l.tipo);
-    gravarCampoCs(l.caminho, v);
-    CAMPOS_LIDOS_IA.add(l.caminho); n++;
+    if (gravarCampo(l, v) === false) return;
+    if (l.sel) LIDOS_TELA.add(l.sel); else CAMPOS_LIDOS_IA.add(l.caminho);
+    n++;
   });
-  const aba = CONFERENCIA.chave;
+  const aba = CONFERENCIA.chave, cs = CONFERENCIA.f.modo === 'csond';
   fecharConferencia();
-  montarCsond();
+  if (cs) montarCsond();
   if (typeof montarDados === 'function') montarDados();
   atualizar();
+  marcarCamposLidos();
   avisoRasc(aba, `<div class="aviso ok"><span class="ico">✓</span><span>${n} valor(es) aplicado(s) — os campos lidos ficam
     destacados até você mexer neles. Confira antes de salvar.</span></div>`);
 }
 
 /** Destaca os campos que vieram da IA; some quando o laboratorista edita. */
 function marcarCamposLidos() {
+  LIDOS_TELA.forEach(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    el.classList.add('lido-ia');
+    if (!el.dataset.ligadoIaTela) {
+      el.dataset.ligadoIaTela = '1';
+      el.addEventListener('input', e => { if (e.isTrusted) { LIDOS_TELA.delete(sel); el.classList.remove('lido-ia'); } });
+    }
+  });
   document.querySelectorAll('[data-cs], [data-cscab]').forEach(el => {
     const c = el.dataset.cs || ('medicao.' + el.dataset.cscab);
     el.classList.toggle('lido-ia', CAMPOS_LIDOS_IA.has(c));
@@ -10155,6 +10226,7 @@ function cartaoRascunho(aba) {
       <label class="btn"><input type="file" accept="image/*" capture="environment" data-rascfoto="${aba}" hidden>📷 Fotografar</label>
       <label class="btn ghost"><input type="file" accept="image/*,application/pdf" multiple data-rascfoto="${aba}" hidden>Escolher foto ou PDF</label>
       <button class="btn ghost" type="button" data-rascficha="${aba}">Imprimir ficha em branco</button>
+      ${f.modo === 'csond' ? '' : `<button class="btn ghost" type="button" data-rascfichas="1">Todas as fichas deste ensaio</button>`}
     </div>
     <div id="rascAviso-${aba}"></div>
   </div>`;
@@ -10186,10 +10258,301 @@ function ligarRascunho() {
     el.dataset.ligado = '1';
     el.addEventListener('click', () => abrirFichasRascunho([el.dataset.rascficha]));
   });
+  document.querySelectorAll('[data-rascfichas]').forEach(el => {
+    if (el.dataset.ligado) return;
+    el.dataset.ligado = '1';
+    el.addEventListener('click', () => abrirFichasRascunho());
+  });
   const todas = $('btnFichasRascunho');
   if (todas && !todas.dataset.ligado) { todas.dataset.ligado = '1'; todas.addEventListener('click', () => abrirFichasRascunho()); }
   marcarCamposLidos();
 }
+
+/* ------------------------------------------------------------
+   PDF de uma aba só — "lancei só a granulometria, quero só ela"
+   ------------------------------------------------------------ */
+const FOLHAS_DA_ABA_CS = {
+  csident: null,                          // a 1ª aba gera o laudo inteiro
+  csproctor: ['csProctor'], csisc: ['csIsc'], cslimites: ['csCarac'],
+  csgranul: ['csSed'], cssed: ['csSed'], csmct: ['csMct'], csmr: ['csMr'],
+};
+const NOME_PDF_ABA_CS = { csident: 'o laudo completo (todas as folhas)', csproctor: 'a folha de compactação',
+  csisc: 'as folhas do ISC', cslimites: 'a folha de caracterização (limites, HRB e SUCS)',
+  csgranul: 'a folha de granulometria e sedimentação', cssed: 'a folha de granulometria e sedimentação',
+  csmct: 'a folha do MCT', csmr: 'a folha do módulo de resiliência' };
+
+function voltarRelatorioInteiro() { if (FOLHAS_SO) { FOLHAS_SO = null; atualizar(); } }
+
+function gerarPdfDaAba(aba) {
+  FOLHAS_SO = FOLHAS_DA_ABA_CS[aba] || null;
+  atualizar();
+  // no celular a impressão não segura o script: o relatório inteiro volta quando a impressão
+  // termina (afterprint), ao trocar de aba ou ao pedir o relatório completo
+  window.addEventListener('afterprint', voltarRelatorioInteiro, { once: true });
+  imprimirRelatorio();
+}
+
+function montarBotoesPdfAba() {
+  document.querySelectorAll('[data-pdfslot]').forEach(el => {
+    const aba = el.dataset.pdfslot;
+    el.innerHTML = `<div class="card pdf-aba"><h2>PDF ${aba === 'csident' ? 'do laudo' : 'desta aba'} <span class="tag">${aba === 'csident' ? 'todas as folhas' : 'só esta parte'}</span></h2>
+      <p class="hint" style="margin:0 0 12px">Gera ${NOME_PDF_ABA_CS[aba]}${aba === 'csident' ? '' : ', com cabeçalho e assinaturas, sem esperar o resto do ensaio'}.
+        Na janela de impressão, escolha <b>Salvar como PDF</b>.</p>
+      <button class="btn" type="button" data-pdfaba="${aba}">Gerar PDF</button></div>`;
+    el.querySelector('[data-pdfaba]').addEventListener('click', () => gerarPdfDaAba(aba));
+  });
+}
+
+/** Cartão "Ler rascunho" no alto das abas dos demais ensaios (vagas fixas do HTML). */
+function montarRascunhoNasAbas() {
+  document.querySelectorAll('[data-rascslot]').forEach(el => { el.innerHTML = cartaoRascunho(el.dataset.rascslot); });
+  ligarRascunho();
+}
+/* ============================================================
+   FICHAS DE RASCUNHO DOS DEMAIS ENSAIOS — CAUQ, Marshall 031,
+   aplicação, sondagem rotativa, concreto e insumos.
+   Uma ficha por aba, uma foto por aba. Diferente das fichas da
+   caracterização de sondagem (que gravam no estado), estas apontam
+   para o campo da tela (seletor): o valor lido entra no campo e o
+   próprio ensaio recalcula, como se tivesse sido digitado.
+
+   Campo:  [rótulo, chave, tipo, largura, seletor]
+   Linha:  [rótulo, i => chave, tipo, unidade, i => seletor]
+   ============================================================ */
+
+const _q = (atr, v) => `[${atr}="${v}"]`;
+const fId = (rot, chave, id, tipo = 'num', larg) => [rot, chave, tipo, larg, '#' + id];
+const fAt = (rot, chave, sel, tipo = 'num', larg) => [rot, chave, tipo, larg, sel];
+const lin = (rot, chave, sel, tipo = 'num', un) => [rot, i => `${chave}.${i}`, tipo, un, sel];
+const _idx = n => Array.from({ length: n }, (_, i) => i);
+
+/* cabeçalho de cada família: [rótulo, chave no JSON, caminho, tipo, seletor] */
+const cabFamilia = atr => [
+  ['Registro', 'registro', 'cab.registro', 'texto', _q(atr, 'registro')],
+  ['Data', 'data', 'cab.data', 'data', _q(atr, 'dataEnsaio')],
+  ['Laboratorista', 'laboratorista', 'cab.laboratorista', 'texto', _q(atr, 'laboratorista')],
+];
+const CAB_CAUQ = cabFamilia('data-mq'), CAB_CONCRETO = cabFamilia('data-mc'), CAB_INSUMOS = cabFamilia('data-mi');
+
+const PEN_CAUQ = ['1"', '3/4"', '1/2"', '3/8"', '1/4"', 'nº 4', 'nº 8', 'nº 16', 'nº 30', 'nº 50', 'nº 100', 'nº 200'];
+const PEN_AGREG = ['2"', '1 1/2"', '1"', '3/4"', '1/2"', '3/8"', '1/4"', 'nº 4', 'nº 8', 'nº 16', 'nº 30', 'nº 50', 'nº 100', 'nº 200'];
+const PEN_FORMA = ['3"', '2 1/2"', '2"', '1 1/2"', '1"', '3/4"', '1/2"', '3/8"', 'nº 4'];
+const ROMANOS = ['I', 'II', 'III'];
+
+/* identificação do ensaio de CAUQ que fica no cartão de dados (1ª aba) */
+const IDENT_CAUQ = [
+  fAt('Medição nº', 'medicao', _q('data-mq', 'numeroMedicao'), 'texto'),
+  fAt('Material', 'material', _q('data-mq', 'material'), 'texto'),
+  fAt('Usina', 'usina', _q('data-mq', 'usina'), 'texto'),
+  fAt('Posição / lado (LD, LE, EIXO)', 'lado', _q('data-mq', 'lado'), 'texto'),
+  fAt('Estaca inicial', 'estacaInicial', _q('data-mq', 'estacaInicial'), 'texto'),
+  fAt('Estaca final', 'estacaFinal', _q('data-mq', 'estacaFinal'), 'texto'),
+  fAt('Cota', 'cota', _q('data-mq', 'cota'), 'texto'),
+];
+
+const nomesAgreg031 = () => _idx(4).map(k => {
+  const n = (((estado.m031 || {}).agrGran || [])[k] || {}).nome;
+  return n ? String(n).slice(0, 14) : `Agregado ${k + 1}`;
+});
+const nomesBritas031 = () => _idx(2).map(k => {
+  const n = ((((estado.m031 || {}).agreg || {}).britas || [])[k] || {}).nome;
+  return n ? String(n).slice(0, 16) : `Brita ${k + 1}`;
+});
+const fracoesForma = () => {
+  const g = ((estado.insumos || {}).forma || {}).graduacao || 'C';
+  return ((typeof INSUMOS !== 'undefined' && INSUMOS.GRADUACOES_FORMA[g]) || []).map(x => x.fracao + ' mm');
+};
+
+const FICHAS_OUTRAS = [
+  /* ---------------- CAUQ — Marshall ---------------- */
+  { aba: 'cqbetume', modo: 'marshall', codigo: 'TLT-C1', titulo: 'CAUQ — identificação, betume e umidade', primeira: true, cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Identificação do ensaio', campos: IDENT_CAUQ },
+      { tipo: 'campos', titulo: 'Temperaturas (°C)', campos: [
+        fId('Na usina', 'tempUsina', 'cqUsina'), fId('De rolagem', 'tempRolagem', 'cqRolagem')] },
+      { tipo: 'campos', titulo: 'Extração de betume', campos: [
+        fId('Método (Rotarex / Soxhlet…)', 'metodo', 'cqMetodo', 'texto'), fId('Peso da amostra antes (g)', 'antes', 'cqBet_antes'),
+        fId('Peso da amostra depois (g)', 'depois', 'cqBet_depois'), fId('Fator de correção (%)', 'fator', 'cqBet_fatorCorrecao')] },
+      { tipo: 'campos', titulo: 'Umidade da massa', campos: [
+        fId('Amostra úmida (g)', 'umida', 'cqBet_umidadeAntes'), fId('Amostra seca (g)', 'seca', 'cqBet_umidadeDepois')] },
+    ] },
+  { aba: 'cqgranul', modo: 'marshall', codigo: 'TLT-C2', titulo: 'CAUQ — granulometria da mistura', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'grade', titulo: 'Peneiramento — retido ACUMULADO (g)', colunas: ['Retido acumulado (g)'], idx: [0],
+      linhas: PEN_CAUQ.map((n, k) => [n, () => `granul.${k}`, 'num', 'g', () => `[data-cq="granul"][data-i="${k}"][data-f="retido"]`]) }] },
+  { aba: 'cqrice', modo: 'marshall', codigo: 'TLT-C3', titulo: 'CAUQ — densidade máxima (Rice)', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'campos', titulo: 'Rice test', campos: [
+      fId('Peso da amostra seca (g)', 'amostra', 'cqRice_pesoAmostra'), fId('Frasco + amostra + água (g)', 'frascoAmostraAgua', 'cqRice_frascoMaisAmostraMaisAgua'),
+      fId('Frasco + água (g)', 'frascoAgua', 'cqRice_frascoMaisAgua'), fId('Temperatura da água (°C)', 'temperatura', 'cqRice_temperatura')] }] },
+  { aba: 'cqmarshall', modo: 'marshall', codigo: 'TLT-C4', titulo: 'CAUQ — estabilidade Marshall', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'grade', titulo: 'Corpos de prova', colunas: ['CP 1', 'CP 2', 'CP 3'], idx: [0, 1, 2], linhas: [
+      ['Espessura (cm)', 'espessura'], ['Peso ao ar (g)', 'pesoAr'], ['Peso imerso (g)', 'pesoImerso'],
+      ['Peso sat. sup. seca (g)', 'pesoSSS'], ['Leitura da prensa', 'leituraEstabilidade']]
+      .map(([r, f]) => lin(r, `marshall.${f}`, i => `[data-cq="marshall"][data-i="${i}"][data-f="${f}"]`)) }] },
+  { aba: 'cqtracao', modo: 'marshall', codigo: 'TLT-C5', titulo: 'CAUQ — tração diametral', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'grade', titulo: 'Corpos de prova', colunas: ['CP 1', 'CP 2', 'CP 3'], idx: [0, 1, 2], linhas: [
+      ['Espessura (cm)', 'espessura'], ['Diâmetro (cm)', 'diametro'], ['Leitura da prensa', 'leitura']]
+      .map(([r, f]) => lin(r, `tracao.${f}`, i => `[data-cq="tracao"][data-i="${i}"][data-f="${f}"]`)) }] },
+  { aba: 'cqareia', modo: 'marshall', codigo: 'TLT-C6', titulo: 'CAUQ — equivalente de areia', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'grade', titulo: 'Determinações', colunas: ['1', '2', '3'], idx: [0, 1, 2], linhas: [
+      ['Altura da areia', 'alturaAreia'], ['Altura do floculado', 'alturaArgila']]
+      .map(([r, f]) => lin(r, `ea.${f}`, i => `[data-cq="ea"][data-i="${i}"][data-f="${f}"]`)) }] },
+
+  /* ---------------- Marshall 031/2024 ---------------- */
+  { aba: 'm31proj', modo: 'm031', codigo: 'TLT-M1', titulo: 'Marshall 031 — obra e medição', primeira: true, cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Obra', campos: [
+        fAt('Obra', 'obra', _q('data-mq', 'obra'), 'texto', 2), fAt('Cliente', 'cliente', _q('data-mq', 'cliente'), 'texto'),
+        fAt('Trecho', 'trecho', _q('data-mq', 'trecho'), 'texto', 2), fAt('Sub-trecho', 'subTrecho', _q('data-mq', 'subTrecho'), 'texto'),
+        fAt('Serviço', 'servico', _q('data-mq', 'servico'), 'texto'), fAt('Engenheiro responsável', 'engenheiro', _q('data-mq', 'engenheiro'), 'texto', 2)] },
+      { tipo: 'campos', titulo: 'Medição', campos: [
+        fAt('Medição nº', 'medicao', _q('data-mq', 'numeroMedicao'), 'texto'), fAt('Material', 'material', _q('data-mq', 'material'), 'texto'),
+        fAt('Usina', 'usina', _q('data-mq', 'usina'), 'texto'), fAt('Observações', 'obs', _q('data-mq', 'observacoes'), 'texto', 3)] },
+    ] },
+  { aba: 'm31granul', modo: 'm031', codigo: 'TLT-M2', titulo: 'Marshall 031 — teor e granulometria', cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Local', campos: [
+        fAt('Posição (LD, LE, EIXO)', 'lado', _q('data-m31cab', 'lado'), 'texto'), fAt('Estaca inicial', 'estacaInicial', _q('data-m31cab', 'estacaInicial'), 'texto'),
+        fAt('Estaca final', 'estacaFinal', _q('data-m31cab', 'estacaFinal'), 'texto'), fAt('Cota', 'cota', _q('data-m31cab', 'cota'), 'texto')] },
+      { tipo: 'campos', titulo: 'Teor de CAP', campos: [
+        fAt('Peso inicial (g)', 'betume.inicial', _q('data-m31', 'betume.pesoInicial')), fAt('Peso final (g)', 'betume.final', _q('data-m31', 'betume.pesoFinal')),
+        fAt('Fator de calibração', 'betume.fator', _q('data-m31', 'betume.fatorCalibracao'))] },
+      { tipo: 'grade', titulo: 'Granulometria — retido (g)', colunas: ['Retido (g)'], idx: [0],
+        linhas: PEN_CAUQ.map((n, k) => [n, () => `granul.${k}`, 'num', 'g', () => _q('data-m31', `granul.retidos.${k}`)]) },
+    ] },
+  { aba: 'm31rice', modo: 'm031', codigo: 'TLT-M3', titulo: 'Marshall 031 — densidade máxima (Rice)', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'campos', titulo: 'Rice test', campos: [
+      fAt('Peso da amostra (g)', 'amostra', _q('data-m31', 'rice.pesoAmostra')), fAt('Frasco + amostra + água (g)', 'frascoAmostraAgua', _q('data-m31', 'rice.frascoAmostraAgua')),
+      fAt('Frasco + água (g)', 'frascoAgua', _q('data-m31', 'rice.frascoAgua')), fAt('Correção', 'correcao', _q('data-m31', 'rice.correcao')),
+      fAt('Temperatura da água (°C)', 'temperatura', _q('data-m31', 'rice.temperatura'))] }] },
+  { aba: 'm31marshall', modo: 'm031', codigo: 'TLT-M4', titulo: 'Marshall 031 — estabilidade e fluência', cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Banho', campos: [fAt('Temperatura da água (°C)', 'temperaturaAgua', _q('data-m31', 'marshall.temperaturaAgua'))] },
+      { tipo: 'grade', titulo: 'Corpos de prova', colunas: ROMANOS.map(r => 'CP ' + r), idx: [0, 1, 2], linhas: [
+        ['Altura (cm)', 'altura'], ['Peso ao ar (g)', 'pesoAr'], ['Peso imerso (g)', 'pesoImerso'], ['Peso sat. sup. seca (g)', 'pesoSSS'],
+        ['Leitura da prensa', 'leitura'], ['Fluência', 'fluencia']]
+        .map(([r, f]) => lin(r, `marshall.${f}`, i => _q('data-m31', `marshall.cps.${i}.${f}`))) },
+    ] },
+  { aba: 'm31rtd', modo: 'm031', codigo: 'TLT-M5', titulo: 'Marshall 031 — tração diametral', cabs: CAB_CAUQ,
+    blocos: [{ tipo: 'grade', titulo: 'Corpos de prova', colunas: ROMANOS.map(r => 'CP ' + r), idx: [0, 1, 2], linhas: [
+      ['Espessura (cm)', 'espessura'], ['Diâmetro (cm)', 'diametro'], ['Leitura da prensa', 'leitura']]
+      .map(([r, f]) => lin(r, `rtd.${f}`, i => _q('data-m31', `rtd.${i}.${f}`))) }] },
+  { aba: 'm31agreg', modo: 'm031', codigo: 'TLT-M6', titulo: 'Marshall 031 — agregados', cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'grade', titulo: 'Massa específica do graúdo', colunas: nomesBritas031, idx: [0, 1], linhas: [
+        ['Temperatura da água (°C)', 'temperatura'], ['A — seco (g)', 'A'], ['B — sat. sup. seca (g)', 'B'], ['C — imerso (g)', 'C']]
+        .map(([r, f]) => lin(r, `brita.${f}`, i => _q('data-m31', `agreg.britas.${i}.${f}`))) },
+      { tipo: 'grade', titulo: 'Granulometria — retido ACUMULADO (g), duas amostras por agregado',
+        colunas: () => nomesAgreg031().flatMap(n => [`${n} · 1`, `${n} · 2`]), idx: _idx(8),
+        linhas: [['Peso total (g)', 'total'], ...PEN_AGREG.map((n, k) => [n, `ret${k}`])].map(([r, f], k) =>
+          [r, i => `agr.${Math.floor(i / 2)}.${i % 2}.${f}`, 'num', 'g',
+           i => _q('data-m31', `agrGran.${Math.floor(i / 2)}.amostras.${i % 2}.${k === 0 ? 'total' : 'retidos.' + (k - 1)}`)]) },
+    ] },
+
+  /* ---------------- Aplicação de CAUQ ---------------- */
+  { aba: 'aplicacao', modo: 'aplicacao', codigo: 'TLT-A1', titulo: 'Aplicação de CAUQ — boletim', primeira: true, cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Pista', campos: [
+        fAt('Posição (LD, LE, EIXO)', 'lado', _q('data-apcab', 'lado'), 'texto'), fAt('Largura (m)', 'largura', _q('data-ap', 'largura')),
+        fAt('Espessura (cm)', 'espessura', _q('data-ap', 'espessura'))] },
+      { tipo: 'grade', titulo: 'Faixas aplicadas', colunas: ['Faixa 1', 'Faixa 2'], idx: [0, 1], linhas: [
+        lin('Estaca inicial', 'faixa.inicial', i => _q('data-ap', `faixas.${i}.inicial`), 'texto'),
+        lin('Estaca final', 'faixa.final', i => _q('data-ap', `faixas.${i}.final`), 'texto'),
+        lin('Extensão (m)', 'faixa.extensao', i => _q('data-ap', `faixas.${i}.extensao`))] },
+      ...[0, 10].map(base => ({ tipo: 'grade', par: true, add: '#btnApCaminhao',
+        titulo: `Caminhões ${String(base + 1).padStart(2, '0')} a ${String(base + 10).padStart(2, '0')}`, colunas: ['Placa', 'Toneladas'], idx: [0, 1],
+        linhas: _idx(10).map(j => { const n = base + j; return [String(n + 1).padStart(2, '0'),
+          c => `caminhao.${n}.${c === 0 ? 'placa' : 'ton'}`, 'num', '', c => _q('data-ap', `caminhoes.${n}.${c === 0 ? 'placa' : 'ton'}`)]; }),
+        tipos: ['texto', 'num'] })),
+      { tipo: 'campos', titulo: 'Observações', campos: [fAt('Observações', 'obs', _q('data-ap', 'observacoes'), 'texto', 3)] },
+    ] },
+
+  /* ---------------- Sondagem rotativa de CAUQ ---------------- */
+  { aba: 'sondagem', modo: 'sondagem', codigo: 'TLT-S1', titulo: 'Sondagem rotativa — corpos de prova', primeira: true, cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Lote', campos: [
+        fId('Temperatura da água (°C)', 'tempAgua', 'sdTempAgua'), fId('Rice do dia (g/cm³)', 'rice', 'sdRice'), fId('Marshall do dia (g/cm³)', 'marshall', 'sdMarshall')] },
+      { tipo: 'grade', titulo: 'Furos', colunas: _idx(8).map(i => `Furo ${i + 1}`), idx: _idx(8), add: '#btnAddSondagem', linhas: [
+        ['CP nº', 'numero', 'texto'], ['Estaca', 'estaca', 'texto'], ['Camada', 'camada', 'texto'], ['Posição (E, D, X)', 'posicao', 'texto'],
+        ['Aplicação (dd/mm)', 'dataAplicacao', 'data'], ['Extração (dd/mm)', 'dataExtracao', 'data'], ['Espessura (cm)', 'espessura', 'num'],
+        ['Peso ao ar (g)', 'pesoAr', 'num'], ['Peso imerso (g)', 'pesoImerso', 'num'], ['Peso sat. sup. seca (g)', 'pesoSuperficieSaturada', 'num']]
+        .map(([r, f, t]) => lin(r, `cp.${f}`, i => `[data-sd="${f}"][data-i="${i}"]`, t)) },
+    ] },
+
+  /* ---------------- Concreto ---------------- */
+  { aba: 'cbpeca', modo: 'concreto', codigo: 'TLT-B1', titulo: 'Concreto — peça concretada', primeira: true, cabs: CAB_CONCRETO,
+    blocos: [
+      { tipo: 'campos', titulo: 'Relatório', campos: [
+        fAt('Medição nº', 'medicao', _q('data-mc', 'numeroMedicao'), 'texto'), fAt('Concreteira / usina', 'concreteira', _q('data-mc', 'concreteira'), 'texto', 2)] },
+      { tipo: 'campos', titulo: 'Peça e entrega', campos: [
+        fAt('RG da peça', 'rg', _q('data-cb', 'rg'), 'texto'), fAt('Data da moldagem', 'dataMoldagem', _q('data-cb', 'dataMoldagem'), 'data'),
+        fAt('Estaca de aplicação', 'estaca', _q('data-cb', 'estacaAplicacao'), 'texto'), fAt('Local de aplicação', 'local', _q('data-cb', 'localAplicacao'), 'texto', 2),
+        fAt('Volume (m³)', 'volume', _q('data-cb', 'volume')), fAt('Placa do caminhão', 'placa', _q('data-cb', 'placaCaminhao'), 'texto'),
+        fAt('Nota fiscal nº', 'nf', _q('data-cb', 'notaFiscal'), 'texto'), fAt('Relação água/cimento', 'ac', _q('data-cb', 'relacaoAguaCimento'))] },
+      { tipo: 'campos', titulo: 'Projeto e slump', campos: [
+        fAt('Fck de projeto (MPa)', 'fck', _q('data-cb', 'fck')), fAt('Slump de projeto (cm)', 'slumpProjeto', _q('data-cb', 'slumpProjeto')),
+        fAt('Slump na aplicação (cm)', 'slump', _q('data-cb', 'slumpAplicacao')), fAt('Diâmetro do CP (mm)', 'diametro', _q('data-cb', 'diametro')),
+        fAt('Altura do CP (mm)', 'altura', _q('data-cb', 'altura'))] },
+    ] },
+  { aba: 'cbrompimento', modo: 'concreto', codigo: 'TLT-B2', titulo: 'Concreto — rompimento dos corpos de prova', cabs: CAB_CONCRETO,
+    blocos: [
+      { tipo: 'campos', titulo: 'Prensa', campos: [fId('Unidade da carga (kN, kgf, tf)', 'unidade', 'cbUnidade', 'texto')] },
+      { tipo: 'grade', titulo: 'Corpos de prova', colunas: ['CP nº', 'Idade (dias)', 'Carga de ruptura'], idx: [0, 1, 2], add: '#btnAddCp',
+        tipos: ['texto', 'num', 'num'],
+        linhas: _idx(12).map(n => [String(n + 1), c => `cp.${n}.${['numero', 'idade', 'carga'][c]}`, 'num', '',
+          c => `[data-cp="${n}"][data-f="${['numero', 'idade', 'carga'][c]}"]`]) },
+    ] },
+
+  /* ---------------- Insumos do concreto ---------------- */
+  { aba: 'infinura', modo: 'insumos', codigo: 'TLT-I1', titulo: 'Insumos — finura do cimento', primeira: true, cabs: CAB_INSUMOS,
+    blocos: [
+      { tipo: 'campos', titulo: 'Identificação', campos: [
+        fAt('RG do ensaio', 'rg', _q('data-mi', 'rg'), 'texto'), fAt('Medição nº', 'medicao', _q('data-mi', 'numeroMedicao'), 'texto'),
+        fId('Material (cimento)', 'material', 'inFinMaterial', 'texto')] },
+      { tipo: 'grade', titulo: 'Determinações', colunas: ['1', '2', '3'], idx: [0, 1, 2], linhas: [
+        ['Massa inicial (g)', 'massaInicial'], ['Resíduo na nº 200 (g)', 'residuo']]
+        .map(([r, f]) => lin(r, `finura.${f}`, i => `[data-ins="finura"][data-i="${i}"][data-f="${f}"]`)) },
+    ] },
+  { aba: 'inabrasao', modo: 'insumos', codigo: 'TLT-I2', titulo: 'Insumos — abrasão Los Angeles', cabs: CAB_INSUMOS,
+    blocos: [
+      { tipo: 'campos', titulo: 'Amostra', campos: [fId('Material', 'material', 'inAbrMaterial', 'texto', 2), fId('Graduação (A, B, C…)', 'graduacao', 'inAbrGrad', 'texto')] },
+      { tipo: 'grade', titulo: 'Determinações', colunas: ['1', '2', '3'], idx: [0, 1, 2], linhas: [
+        ['Massa inicial (g)', 'massaInicial'], ['Massa retida na nº 12 (g)', 'massaFinal']]
+        .map(([r, f]) => lin(r, `abrasao.${f}`, i => `[data-ins="abrasao"][data-i="${i}"][data-f="${f}"]`)) },
+    ] },
+  { aba: 'informa', modo: 'insumos', codigo: 'TLT-I3', titulo: 'Insumos — índice de forma', cabs: CAB_INSUMOS,
+    blocos: [
+      { tipo: 'campos', titulo: 'Amostra', campos: [fId('Material', 'material', 'inFrmMaterial', 'texto'), fId('Massa da amostra seca (g)', 'massa', 'inFrmMassa'),
+        fId('Graduação (A, B, C, D)', 'graduacao', 'inFrmGrad', 'texto')] },
+      { tipo: 'grade', titulo: 'Peneiramento — retido ACUMULADO (g)', colunas: ['Retido acumulado (g)'], idx: [0],
+        linhas: PEN_FORMA.map((n, k) => [n, () => `forma.ret.${k}`, 'num', 'g', () => `[data-ins="frmRet"][data-i="${k}"][data-f="massa"]`]) },
+      { tipo: 'grade', titulo: () => `Frações da graduação ${((estado.insumos || {}).forma || {}).graduacao || ''}`,
+        colunas: fracoesForma, idx: () => _idx(fracoesForma().length), linhas: [
+          ['Massa da fração (g)', 'massaFracao'], ['Retida no crivo 1 (g)', 'massaCrivo1'], ['Retida no crivo 2 (g)', 'massaCrivo2']]
+          .map(([r, f]) => lin(r, `forma.${f}`, i => `[data-ins="frmFrac"][data-i="${i}"][data-f="${f}"]`)) },
+    ] },
+  { aba: 'inmassa', modo: 'insumos', codigo: 'TLT-I4', titulo: 'Insumos — massa unitária', cabs: CAB_INSUMOS,
+    blocos: [
+      { tipo: 'campos', titulo: 'Recipiente', campos: [fId('Volume do recipiente (dm³)', 'volume', 'inMuVolume')] },
+      { tipo: 'grade', titulo: 'Pesagens (kg)', colunas: ['Material 1', 'Material 2', 'Material 3', 'Material 4'], idx: [0, 1, 2, 3], linhas: [
+        lin('Material', 'mu.material', i => `[data-ins="muMat"][data-i="${i}"][data-f="material"]`, 'texto'),
+        ...[0, 1, 2].map(a => lin(`Amostra ${a + 1} (kg)`, `mu.amostra${a + 1}`, i => `[data-ins="muMassa"][data-i="${i}"][data-f="${a}"]`))] },
+    ] },
+  { aba: 'indurab', modo: 'insumos', codigo: 'TLT-I5', titulo: 'Insumos — durabilidade (sulfato de sódio)', cabs: CAB_INSUMOS,
+    blocos: [
+      { tipo: 'campos', titulo: 'Materiais', campos: [fId('Agregado graúdo', 'matG', 'inDurMatG', 'texto'), fId('Agregado miúdo', 'matM', 'inDurMatM', 'texto')] },
+      ...[['durG', 'Graúdo', 1], ['durM', 'Miúdo', 6]].map(([g, nome, n]) => ({ tipo: 'grade', titulo: `Agregado ${nome.toLowerCase()} — frações`,
+        colunas: ['Fração', 'Massa antes (g)', 'Massa depois (g)', '% na graduação'], idx: [0, 1, 2, 3], tipos: ['texto', 'num', 'num', 'num'],
+        linhas: _idx(n).map(k => [`${nome} ${k + 1}`, c => `${g}.${k}.${['nome', 'massaAntes', 'massaDepois', 'percentualGraduacao'][c]}`, 'num', '',
+          c => `[data-ins="${g}"][data-i="${k}"][data-f="${['nome', 'massaAntes', 'massaDepois', 'percentualGraduacao'][c]}"]`]) })),
+    ] },
+  { aba: 'inareia', modo: 'insumos', codigo: 'TLT-I6', titulo: 'Insumos — equivalente de areia', cabs: CAB_INSUMOS,
+    blocos: [
+      { tipo: 'campos', titulo: 'Amostra', campos: [fId('Material (areia)', 'material', 'inEaMaterial', 'texto', 2)] },
+      { tipo: 'grade', titulo: 'Determinações', colunas: ['1', '2', '3'], idx: [0, 1, 2], linhas: [
+        ['H1 — floculado + areia (cm)', 'alturaFloculado'], ['H2 — areia pelo pistão (cm)', 'alturaAreia']]
+        .map(([r, f]) => lin(r, `ea.${f}`, i => `[data-ins="ea"][data-i="${i}"][data-f="${f}"]`)) },
+    ] },
+];
 
 /* ============================================================
    NÚCLEO DE CÁLCULO (porte direto do TypeScript da Etapa 1)
@@ -10570,7 +10933,7 @@ let ULTIMO_CALCULO = null;
 
 const PADRAO = {
   familia: 'solos',
-  modo: 'completo',
+  modo: 'csond',
   cauq: JSON.parse(JSON.stringify(CAUQ_PADRAO)),
   concreto: JSON.parse(JSON.stringify(CONCRETO_PADRAO)),
   insumos: JSON.parse(JSON.stringify(INSUMOS_PADRAO)),
@@ -12334,6 +12697,21 @@ const CAMPOS_MEDICAO = [
   { g:'ident',   k:'furo',            rot:'Estaca coleta',     larg:1, obrig:true, dica:'Ex.: 12+00' },
 ];
 
+/* Na Caracterização de sondagem estes já estão no cartão de identificação da 1ª aba (ficha R1). */
+const DUPLICADOS_CSOND = ['registro', 'furo', 'dataEnsaio', 'obra', 'camada', 'tipoMaterial', 'laboratorista', 'engenheiro', 'proctor'];
+
+/**
+ * A aba Dados saiu do topo: os cartões de dados da família moram na primeira aba
+ * de cada ensaio. O bloco é um só e muda de lugar (os campos guardam as ligações).
+ */
+function posicionarDados() {
+  const bloco = $('blocoDados');
+  if (!bloco) return;
+  const vaga = document.querySelector(`[data-dadosslot="${estado.modo}"]`);
+  if (vaga && bloco.parentElement !== vaga) vaga.appendChild(bloco);
+  if (typeof montarDados === 'function' && $('gpPeriodo')) montarDados();
+}
+
 function montarDados() {
   const m = estado.medicao;
 
@@ -12345,7 +12723,7 @@ function montarDados() {
   const grupos = { periodo:'gpPeriodo', obra:'gpObra', mat:'gpMaterial', equipe:'gpEquipe', ident:'gpIdent' };
 
   Object.entries(grupos).forEach(([g, alvo]) => {
-    $(alvo).innerHTML = CAMPOS_MEDICAO.filter(c => c.g === g).map(c => {
+    $(alvo).innerHTML = CAMPOS_MEDICAO.filter(c => c.g === g && !(estado.modo === 'csond' && DUPLICADOS_CSOND.includes(c.k))).map(c => {
       const val = m[c.k] ?? '';
       const campo = c.opcoes
         ? `<select data-md="${c.k}">${c.opcoes
@@ -13113,8 +13491,8 @@ function aplicarPlasticidade() {
    ============================================================ */
 
 const FAMILIAS = {
-  solos: { chave:'solos', nome:'Solos', desc:'13 ensaios', pronta:true,
-           modoPadrao:'completo' },
+  solos: { chave:'solos', nome:'Solos', desc:'Caracterização de sondagem', pronta:true,
+           modoPadrao:'csond' },
   cauq:  { chave:'cauq',  nome:'CAUQ',  desc:'Concreto asfáltico', pronta:true,
            modoPadrao:'marshall' },
   concreto:  { chave:'concreto',  nome:'Concreto',  desc:'Moldagem e rompimento',
@@ -13125,7 +13503,8 @@ const FAMILIAS = {
 
 /** Modos que pertencem a cada família. */
 const MODOS_DA_FAMILIA = {
-  solos:    ['simples', 'caracterizacao', 'completo', 'csond'],
+  // TLT: só a Caracterização de sondagem — ela já tem compactação, ISC, limites e granulometria
+  solos:    ['csond'],
   cauq:     ['marshall', 'm031', 'sondagem', 'aplicacao'],
   concreto: ['concreto'],
   insumos:  ['insumos'],
@@ -13348,7 +13727,7 @@ const ABA_DO_MODO = {
   completo:       'identificacao',
   csond:          'csident',
   marshall:       'cqbetume',
-  m031:           'm31granul',
+  m031:           'm31proj',
   aplicacao:      'aplicacao',
   sondagem:       'sondagem',
   concreto:       'cbpeca',
@@ -13378,7 +13757,7 @@ function montarModos() {
   $('modos').querySelectorAll('[data-modo]').forEach(b =>
     b.addEventListener('click', () => {
       trocarModo(b.dataset.modo);
-      irParaAba(ABA_DO_MODO[b.dataset.modo] || 'dados');
+      irParaAba(ABA_DO_MODO[b.dataset.modo] || 'ensaio');
     }));
 }
 
@@ -13392,9 +13771,15 @@ function trocarModo(chave) {
 
 /** Mostra ou esconde abas, seções e cartões conforme o modo escolhido. */
 function aplicarModo() {
+  // modo que saiu do app (ou veio de um estado antigo guardado) volta para o padrão da família
+  if (!(MODOS_DA_FAMILIA[estado.familia] || []).includes(estado.modo)) {
+    if (!FAMILIAS[estado.familia]) estado.familia = 'solos';
+    estado.modo = FAMILIAS[estado.familia].modoPadrao;
+  }
   const m = MODOS[estado.modo];
   aplicarFamilia();
   // no Marshall 031/2024 o registro e as estacas saem de Dados e vão para a aba do ensaio
+  document.body.classList.toggle('modo-csond', estado.modo === 'csond');
   document.body.classList.toggle('modo-m031', ['m031', 'aplicacao'].includes(estado.modo));
 
   document.querySelectorAll('[data-modos]').forEach(el => {
@@ -13404,12 +13789,13 @@ function aplicarModo() {
 
   // se a aba aberta sumiu, volta para a de seleção
   const aberta = document.querySelector('section.aba.ativa');
-  if (!aberta || aberta.classList.contains('escondido')) irParaAba('dados');
+  if (!aberta || aberta.classList.contains('escondido')) irParaAba('ensaio');
   /* a barra de baixo também se acerta na abertura do app, quando ninguém
      chamou irParaAba() ainda e a aba de dados já vem marcada no HTML */
   else document.body.classList.toggle('sem-rodape',
     ABAS_SEM_RODAPE.includes(aberta.id.replace('aba-', '')));
 
+  posicionarDados();
   $('listaEnsaios').innerHTML = m.ensaios
     .map(([nome, norma]) => `<li>${nome}<span class="norma">${norma}</span></li>`).join('');
 }
@@ -13424,6 +13810,7 @@ function aplicarModo() {
 const ABAS_SEM_RODAPE = ['dados', 'ensaio', 'historico', 'analise', 'equipamentos'];
 
 function irParaAba(chave) {
+  if (typeof FOLHAS_SO !== 'undefined' && FOLHAS_SO) FOLHAS_SO = null;   // o PDF de uma aba só vale para aquela impressão
   document.body.classList.toggle('sem-rodape', ABAS_SEM_RODAPE.includes(chave));
   // as duas barras rolam de lado: a aba escolhida tem de vir para a vista sozinha
   document.querySelectorAll(`.nav-topo [data-aba="${chave}"], .nav-baixo [data-aba="${chave}"]`)
@@ -15836,8 +16223,11 @@ const CONSTRUTORES = {
   resumo:        folhaResumo,
 };
 
+/* PDF de uma aba só (ex.: só a granulometria): enquanto não é null, o relatório leva só estas folhas */
+let FOLHAS_SO = null;
+
 function montarFolhas(r) {
-  const chaves = FOLHAS_POR_MODO[estado.modo] || FOLHAS_POR_MODO.completo;
+  const chaves = FOLHAS_SO || FOLHAS_POR_MODO[estado.modo] || FOLHAS_POR_MODO.completo;
   PENDENCIAS_DA_FOLHA = pendenciasDoEnsaio(r);
   atualizarAgenda(r);
 
@@ -16695,7 +17085,7 @@ function salvarEnsaio() {
       + `salvo tomaria o lugar deste, aqui e na planilha do Drive.`
       + `</span></div>`;
     // no Marshall 031/2024 o registro e a estaca ficam na aba de teor e granulometria
-    irParaAba(estado.modo === 'm031' ? 'm31granul' : estado.modo === 'aplicacao' ? 'aplicacao' : 'dados');
+    irParaAba(ABA_DO_MODO[estado.modo] || 'ensaio');
     return;
   }
 
@@ -16752,7 +17142,7 @@ function editarEnsaio(id) {
   const e = historico.find(x => x.id === id);
   if (!e) return;
   aplicarEnsaio(e.foto);
-  irParaAba(ABA_DO_MODO[estado.modo] || 'dados');
+  irParaAba(ABA_DO_MODO[estado.modo] || 'ensaio');
 }
 
 /** Deixa aberta a lista onde o ensaio aparece — usado depois de salvar. */
@@ -18061,7 +18451,7 @@ function imprimirRelatorio(depois) {
 // tentar chamar um MouseEvent e estourar logo depois da impressão
 $('btnWhatsapp').addEventListener('click', () => enviarPdfWhatsapp());
 ['btnImprimir', 'btnImprimirSondagem', 'btnRelatorio', 'btnRelatorio2'].forEach(id =>
-  $(id).addEventListener('click', () => imprimirRelatorio()));
+  $(id).addEventListener('click', () => { voltarRelatorioInteiro(); imprimirRelatorio(); }));
 
 $('btnAddFuro').addEventListener('click', () => {
   const ultimo = estado.insitu[estado.insitu.length - 1];
@@ -18111,6 +18501,8 @@ montarCauq();
 montarSondagem();
 montarM031();
 montarCsond();
+montarBotoesPdfAba();
+montarRascunhoNasAbas();
 montarAplicacao();
 montarConcreto();
 montarInsumos();

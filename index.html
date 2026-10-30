@@ -960,6 +960,9 @@ section.aba.ativa{display:block; animation:entra .18s ease-out;}
 #folhaImpressao.montando{position:fixed; top:0; left:-20000px; display:block !important; z-index:-1; pointer-events:none;}
 /* para o PDF do WhatsApp: a folha precisa estar no lugar (o gerador não fotografa fora da tela),
    atrás do app e na largura útil do A4 */
+/* medição antes de imprimir: na largura útil do A4, para a folha encher a página */
+#folhaImpressao.montando.medindo{width:194mm; background:var(--mk-branco);}
+#folhaImpressao.montando.medindo .folha.paisagem{width:281mm;}
 #folhaImpressao.montando.para-pdf{position:absolute; left:0; top:0; width:194mm; background:var(--mk-branco);}
 /* verde do WhatsApp: é o sinal de "vai para o WhatsApp", não cor de marca */
 .btn.zap{background:var(--mk-whatsapp); border-color:var(--mk-whatsapp); color:var(--mk-branco);
@@ -1003,6 +1006,14 @@ section.aba.ativa{display:block; animation:entra .18s ease-out;}
   text-align:left; padding-left:5px; background:var(--rotulo-2);}
 .folha .colunas2{display:flex; gap:0; align-items:flex-start;}
 .folha .colunas2 > div{flex:1; min-width:0;}
+.folha .colunas2.c-larga > div:first-child{flex:1.9;}
+.folha .colunas3{display:flex; gap:0; align-items:flex-start;}
+.folha .formula-mr{font-size:10pt; font-weight:bold; text-align:center; padding:6px 4px;}
+.folha .legenda-mr{display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center;}
+.folha .legenda-mr span{display:inline-flex; align-items:center; gap:4px;}
+.folha .legenda-mr i{display:inline-block; width:14px; height:3px;}
+.folha .colunas3 > div{flex:1; min-width:0;}
+.folha .colunas3 > div + div .secao, .folha .colunas3 > div + div table.f{border-left:none;}
 .folha .colunas2 > div + div .secao,
 .folha .colunas2 > div + div table.f,
 .folha .colunas2 > div + div .obs{border-left:none;}
@@ -6380,7 +6391,7 @@ function desenharTelaCauq() {
 function desenharCurvaCauq(r, alvo) {
   const svg = alvo || $('chartCauq');
   if (!svg) return;
-  const W = svg.clientWidth || 900, H = 320;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 320);
   const m = { t:14, r:16, b:44, l:46 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const XMIN = 0.05, XMAX = 40;
@@ -6775,7 +6786,7 @@ function dataCurtaBr(iso) {
 function desenharEvolucaoConcreto(r, alvo) {
   const svg = alvo || $('chartConcreto');
   if (!svg) return;
-  const W = svg.clientWidth || 900, H = 320;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 320);
   const m = { t:16, r:18, b:44, l:52 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -7371,7 +7382,7 @@ function desenharTelaInsumos() {
 function desenharCurvaForma(r, alvo) {
   const svg = alvo || $('chartForma');
   if (!svg) return;
-  const W = svg.clientWidth || 900, H = 300;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 300);
   const m = { t: 14, r: 16, b: 44, l: 46 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const XMIN = 4, XMAX = 80;
@@ -7424,7 +7435,7 @@ function desenharBarrasMassaUnitaria(r, alvo) {
   const svg = alvo || $('chartMassaUnit');
   if (!svg) return;
   const dados = r.massaUnitaria.materiais.filter(x => Number.isFinite(x.densidadeMedia));
-  const W = svg.clientWidth || 900, H = 260;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 260);
   const m = { t: 16, r: 16, b: 46, l: 52 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -9667,24 +9678,33 @@ function desenharTelaCsond(r) {
    ------------------------------------------------------------ */
 
 function plotCs(svg, { series = [], x = {}, y = {}, guias = [], textos = [], altura = 260 }) {
-  const W = svg.clientWidth || 640, H = altura;
+  const W = svg.clientWidth || 640, H = alturaGraf(svg, altura);
   const m = { t: 14, r: 16, b: 40, l: 54 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const NS = 'http://www.w3.org/2000/svg';
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = '';
   const add = (tag, at, txt) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt !== undefined) e.textContent = txt; svg.appendChild(e); return e; };
-  const todos = series.flatMap(s => s.pts).filter(p => ehNumero(p[0]) && ehNumero(p[1]) && (!x.log || p[0] > 0));
+  const todos = series.flatMap(s => s.pts).filter(p => ehNumero(p[0]) && ehNumero(p[1]) && (!x.log || p[0] > 0) && (!y.log || p[1] > 0));
   if (!todos.length) { add('text', { x: W / 2, y: H / 2, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--text-mut)' }, 'Sem dados ainda'); return; }
   const tx = v => x.log ? Math.log10(v) : v;
   let x0 = x.min ?? Math.min(...todos.map(p => tx(p[0]))), x1 = x.max ?? Math.max(...todos.map(p => tx(p[0])));
-  let y0 = y.min ?? Math.min(...todos.map(p => p[1])), y1 = y.max ?? Math.max(...todos.map(p => p[1]));
+  const ty = v => y.log ? Math.log10(v) : v;
+  let y0 = y.min ?? Math.min(...todos.map(p => ty(p[1]))), y1 = y.max ?? Math.max(...todos.map(p => ty(p[1])));
   if (x.min === undefined && !x.log) { const f = (x1 - x0) * 0.08 || 1; x0 -= f; x1 += f; }
-  if (y.min === undefined) { const f = (y1 - y0) * 0.15 || Math.abs(y1) * 0.1 || 1; y0 -= f; y1 += f; }
-  if (x.log) { x0 = Math.floor(x0); x1 = Math.ceil(x1); }
-  const sx = v => m.l + ((tx(v) - x0) / (x1 - x0)) * pw, sy = v => m.t + ph - ((v - y0) / (y1 - y0)) * ph;
+  if (y.min === undefined && !y.log) { const f = (y1 - y0) * 0.15 || Math.abs(y1) * 0.1 || 1; y0 -= f; y1 += f; }
+  if (x.log) { x0 = Math.floor(x0); x1 = Math.ceil(x1); if (x1 === x0) x1++; }
+  if (y.log) { y0 = Math.floor(y0); y1 = Math.ceil(y1); if (y1 === y0) y1++; }
+  // um eixo sem variação (todos os valores iguais) dividiria por zero
+  if (!(x1 > x0)) x1 = x0 + 1;
+  if (!(y1 > y0)) y1 = y0 + 1;
+  const sx = v => m.l + ((tx(v) - x0) / (x1 - x0)) * pw, sy = v => m.t + ph - ((ty(v) - y0) / (y1 - y0)) * ph;
   const nT = 5;
-  for (let i = 0; i <= nT; i++) {
+  if (y.log) for (let e = y0; e <= y1; e++) {
+    const vv = 10 ** e;
+    add('line', { x1: m.l, x2: m.l + pw, y1: sy(vv), y2: sy(vv), stroke: 'var(--grid)', 'stroke-width': 1 });
+    add('text', { x: m.l - 6, y: sy(vv) + 4, 'text-anchor': 'end', 'font-size': 10, fill: 'var(--text-mut)' }, String(vv).replace('.', ','));
+  } else for (let i = 0; i <= nT; i++) {
     const vv = y0 + (i / nT) * (y1 - y0);
     add('line', { x1: m.l, x2: m.l + pw, y1: sy(vv), y2: sy(vv), stroke: 'var(--grid)', 'stroke-width': 1 });
     add('text', { x: m.l - 6, y: sy(vv) + 4, 'text-anchor': 'end', 'font-size': 10, fill: 'var(--text-mut)' }, fmt(vv, y.casas ?? 2));
@@ -9692,7 +9712,7 @@ function plotCs(svg, { series = [], x = {}, y = {}, guias = [], textos = [], alt
   if (x.log) for (let e = x0; e <= x1; e++) {
     const vv = 10 ** e;
     add('line', { x1: sx(vv), x2: sx(vv), y1: m.t, y2: m.t + ph, stroke: 'var(--grid)', 'stroke-width': 1 });
-    add('text', { x: sx(vv), y: m.t + ph + 15, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--text-mut)' }, String(vv));
+    add('text', { x: sx(vv), y: m.t + ph + 15, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--text-mut)' }, String(vv).replace('.', ','));
   } else for (let i = 0; i <= nT; i++) {
     const vv = x0 + (i / nT) * (x1 - x0);
     add('line', { x1: sx(vv), x2: sx(vv), y1: m.t, y2: m.t + ph, stroke: 'var(--grid)', 'stroke-width': 1 });
@@ -9708,7 +9728,7 @@ function plotCs(svg, { series = [], x = {}, y = {}, guias = [], textos = [], alt
   cp.appendChild(rc); defs.appendChild(cp);
   guias.forEach(g => add('line', { x1: sx(g.x1), x2: sx(g.x2), y1: sy(g.y1), y2: sy(g.y2), stroke: g.cor || 'var(--s2)', 'stroke-width': 1.3, 'stroke-dasharray': '4 3', 'clip-path': `url(#${id})` }));
   series.forEach(s => {
-    const p = s.pts.filter(q => ehNumero(q[0]) && ehNumero(q[1]) && (!x.log || q[0] > 0));
+    const p = s.pts.filter(q => ehNumero(q[0]) && ehNumero(q[1]) && (!x.log || q[0] > 0) && (!y.log || q[1] > 0));
     if (s.linha !== false && p.length > 1)
       add('path', { d: p.map((q, i) => `${i ? 'L' : 'M'}${sx(q[0]).toFixed(1)},${sy(q[1]).toFixed(1)}`).join(''), fill: 'none', stroke: s.cor || 'var(--s1)', 'stroke-width': s.largura || 2, 'stroke-dasharray': s.tracejado ? '5 4' : '', 'clip-path': `url(#${id})` });
     if (s.marcas) p.forEach(q => add('circle', { cx: sx(q[0]), cy: sy(q[1]), r: 4, fill: s.cor || 'var(--s1)', stroke: 'var(--card)', 'stroke-width': 1.5 }));
@@ -9751,6 +9771,43 @@ function desenharGraficoCsond(tipo, r, svg) {
     const I = r.isc;
     const series = [1, 2, 3].map((i, k) => ({ pts: CSOND.PENETRACOES.map(([, mm], j) => [mm, I.cps[i].pressoes[j]]), marcas: true, cor: `var(--s${k + 1})` }));
     plotCs(svg, { series, x: { titulo: 'Penetração (mm)', casas: 2 }, y: { titulo: 'Pressão (kgf/cm²)', casas: 1 }, altura: H });
+  } else if (/^cs-pen-\d$/.test(tipo)) {
+    // um ponto por gráfico, com as pressões corrigidas (2,54 e 5,08 mm) marcadas
+    const i = Number(tipo.slice(-1)), I = r.isc, c = ((estado.csond.isc || {}).corr || [])[i] || {};
+    const series = [{ pts: [[0, 0], ...CSOND.PENETRACOES.map(([, mm], j) => [mm, I.cps[i].pressoes[j]])], marcas: true, cor: `var(--s${i})` }];
+    const corr = [[2.54, c.p254], [5.08, c.p508]].filter(p => ehNumero(p[1]));
+    if (corr.length) series.push({ pts: corr, linha: false, marcas: true, cor: 'var(--s2)' });
+    plotCs(svg, { series, x: { titulo: 'Penetração (mm)', min: 0, max: 10.16, casas: 2 }, y: { titulo: 'Pressão (kgf/cm²)', min: 0, casas: 1 }, altura: H,
+                  guias: [2.54, 5.08].map(v => ({ x1: v, x2: v, y1: -1e9, y2: 1e9, cor: 'var(--text-mut)' })),
+                  textos: corr.map(([x, y]) => ({ x, y, texto: `corr. ${fmt(y, 2)}` })) });
+  } else if (tipo.startsWith('cs-mr-')) {
+    const L = ((estado.csond.mr || {}).linhas || []).filter(l => [l.s3, l.sd, l.mr].every(v => ehNumero(v) && v > 0));
+    const M = (r.mr && r.mr.modelos) || {};
+    const faixa = xs => { const a = Math.min(...xs), b = Math.max(...xs); return [a, b]; };
+    const curva = (f, xs) => { if (!xs.length) return []; const [a, b] = faixa(xs); return amostrar(f, a, b, 20); };
+    const eixoY = { titulo: 'Módulo de resiliência MR (MPa)', log: true, min: 1, max: 3 };
+    const eixoX = t => ({ titulo: t, log: true, min: -2, max: 0 });
+    const ponto = { linha: false, marcas: true, cor: 'var(--s4)' };
+    if (tipo === 'cs-mr-comb') {
+      // uma reta por nível de σ3 (os quatro da DNIT 134)
+      const niveis = [];
+      L.forEach(l => { const n = niveis.find(v => Math.abs(v.s3 - l.s3) < 0.006); if (n) n.ls.push(l); else niveis.push({ s3: l.s3, ls: [l] }); });
+      niveis.sort((a, b) => a.s3 - b.s3);
+      const m = M.combinado;
+      const series = niveis.flatMap((n, k) => {
+        const s3 = n.ls.reduce((a, l) => a + l.s3, 0) / n.ls.length, cor = `var(--s${(k % 4) + 1})`;
+        return [{ pts: n.ls.map(l => [l.sd, l.mr]), linha: false, marcas: true, cor },
+                ...(m ? [{ pts: curva(x => m.k1 * s3 ** m.k2 * x ** m.k3, n.ls.map(l => l.sd)), cor }] : [])];
+      });
+      plotCs(svg, { series, x: eixoX('Tensão desvio σd (MPa)'), y: eixoY, altura: H });
+      return;
+    }
+    const [chave, tit, xv] = { 'cs-mr-s3': ['confinante', 'Tensão confinante σ3 (MPa)', l => l.s3],
+      'cs-mr-sd': ['desvio', 'Tensão desvio σd (MPa)', l => l.sd], 'cs-mr-th': ['somatorio', 'Somatório de tensões θ (MPa)', l => 3 * l.s3 + l.sd] }[tipo];
+    const m = M[chave], xs = L.map(xv);
+    const series = [{ ...ponto, pts: L.map(l => [xv(l), l.mr]) }];
+    if (m) series.push({ pts: curva(x => m.k1 * x ** m.k2, xs), cor: 'var(--s1)' });
+    plotCs(svg, { series, x: eixoX(tit), y: eixoY, altura: H });
   } else if (tipo === 'cs-ll') {
     const L = r.limites;
     const pts = L.ll.map(p => [p.golpes, p.umidade]).filter(p => ehNumero(p[0]) && ehNumero(p[1]));
@@ -9829,154 +9886,211 @@ function folhaCsProctor(pacote, pagina, total) {
       + lin('Densidade solo seco (g/cm³)', i => nCsF(P.pontos[i].densidadeSeca, 3), true))
     + paresFolha([['Nº de camadas', nCsF(s.ident.camadas, 0)], ['Nº de golpes', nCsF(s.ident.golpes, 0)],
                   ['Energia', s.ident.energia || '—'], ['Soquete', s.ident.soquete || '—']], 4)
-    + secao('Curva de compactação') + grafico('cs-proctor', 92)
+    + secao('Curva de compactação') + grafico('cs-proctor', 100, '', 0.5) + '<i class="linhas-altas" hidden></i>'
     + paresFolha([['Hot', P.completo ? nCsF(P.hot, 1) + ' %' : '—', true], ['Dmax', P.completo ? nCsF(P.dmax, 3) + ' g/cm³' : '—', true]], 2);
   return [folha({ titulo: 'Ensaio de Compactação', sub: 'Caracterização de sondagem', norma: 'DNER-ME 129 · NBR 7182',
     pagina, total, corpo, obs: P.completo && P.foraDeOrdem ? 'Umidades fora de ordem crescente — refazer o ensaio.' : '' })];
 }
 
+/* ---- folhas no layout da planilha de origem (laudo SUB LEITO): 11 folhas ---- */
+
+const linhaCs = (cols, rot, f, forte) => `<tr${forte ? ' class="destaque"' : ''}><td class="rot">${rot}</td>${cols.map(i => `<td class="num${forte ? ' forte' : ''}">${f(i)}</td>`).join('')}</tr>`;
+const somaDiasCs = (iso, n) => { const d = new Date(String(iso || '') + 'T12:00:00'); if (isNaN(d)) return ''; d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const resultadosIscCs = I => paresFolha([['Hot', I.completo ? nCsF(I.hot, 1) + ' %' : '—', true], ['Dmax', I.completo ? nCsF(I.dmax, 3) + ' g/cm³' : '—', true],
+  ['I.S.C.', nCsF(I.isc, 1) + ' %', true], ['Expansão', nCsF(I.expansaoHot, 2) + ' %', true]], 4);
+
 function folhaCsIsc(pacote, pagina, total) {
   const r = pacote && pacote.csond; if (!r || r.erro) return [];
-  const s = estado.csond, I = r.isc, e = entradasCsond().conjunto.pontos, C = [1, 2, 3];
-  const lin = (rot, f, forte) => `<tr${forte ? ' class="destaque"' : ''}><td class="rot">${rot}</td>${[0, 1, 2, 3, 4].map(i => `<td class="num${forte ? ' forte' : ''}">${f(i)}</td>`).join('')}</tr>`;
-  const linC = (rot, f, forte) => `<tr${forte ? ' class="destaque"' : ''}><td class="rot">${rot}</td>${C.map(i => `<td class="num${forte ? ' forte' : ''}">${f(i)}</td>`).join('')}</tr>`;
+  const s = estado.csond, I = r.isc, P = r.proctor, e = entradasCsond().conjunto.pontos, C = [1, 2, 3], T = [0, 1, 2, 3, 4];
+  const lin = (rot, f, forte) => linhaCs(T, rot, f, forte), linC = (rot, f, forte) => linhaCs(C, rot, f, forte);
   const pr = prensaCs();
+  const alts = e.map(x => x.altura).filter(ehNumero);
+  const hMedia = alts.length ? alts.reduce((a, b) => a + b, 0) / alts.length : null;
+  const cab5 = `<tr><th></th>${T.map(i => `<th>${i + 1}</th>`).join('')}</tr>`;
+  const compac = tabelaFolha([34, 13.2, 13.2, 13.2, 13.2, 13.2], cab5,
+      lin('H. inicial do cilindro (mm)', i => nCsF(e[i].altura, 1))
+    + lin('Cilindro nº', i => s.proctor[i].cilindro || '—')
+    + lin('Cilindro + solo úmido (g)', i => nCsF(s.proctor[i].cilSoloUmido, 0))
+    + lin('Peso do cilindro (g)', i => nCsF(e[i].pesoCilindro, 0))
+    + lin('Solo úmido (g)', i => nCsF(P.pontos[i].soloUmido, 0))
+    + lin('Volume do cilindro (cm³)', i => nCsF(e[i].volume, 0))
+    + lin('Densidade úmida (g/cm³)', i => nCsF(I.pontos[i].densidadeUmida, 3))
+    + lin('Cápsula nº', i => s.proctor[i].capsula || '—')
+    + lin('Cápsula + solo úmido (g)', i => nCsF(s.proctor[i].umidoTara, 2))
+    + lin('Cápsula + solo seco (g)', i => nCsF(s.proctor[i].secoTara, 2))
+    + lin('Peso da água (g)', i => nCsF(P.pontos[i].agua, 2))
+    + lin('Tara da cápsula (g)', i => nCsF(e[i].tara, 2))
+    + lin('Peso do solo seco (g)', i => nCsF(P.pontos[i].seco, 2))
+    + lin('Teor de umidade (%)', i => nCsF(I.pontos[i].umidade, 1), true)
+    + lin('Densidade seca (g/cm³)', i => nCsF(I.pontos[i].densidadeSeca, 3), true));
+  const condicoes = listaFolha([
+    ['Energia', s.ident.energia || '—', ''], ['Nº de golpes', nCsF(s.ident.golpes, 0), ''], ['Nº de camadas', nCsF(s.ident.camadas, 0), ''],
+    ['H. média inicial', nCsF(hMedia, 2), 'mm'], ['Soquete', s.ident.soquete || '—', ''], ['Disco', s.ident.disco || '—', ''],
+    ['Hot', I.completo ? nCsF(I.hot, 1) : '—', '%', true], ['Dmax', I.completo ? nCsF(I.dmax, 3) : '—', 'g/cm³', true]]);
+  const ini = s.isc.dataInicio;
+  const expansao = tabelaFolha([22, 18, 20, 20, 20], '<tr><th>Data</th><th>Tempo</th><th>Leit. P2</th><th>Leit. P3</th><th>Leit. P4</th></tr>',
+      `<tr><td class="num">${dataBrCs(ini)}</td><td class="num">0 h</td>${C.map(() => `<td class="num">${ini ? '0,00' : '—'}</td>`).join('')}</tr>`
+    + `<tr><td class="num">${ini ? dataBrCs(somaDiasCs(ini, 4)) : '—'}</td><td class="num">96 h</td>${C.map(i => `<td class="num">${nCsF(s.isc.leitura96[i], 2)}</td>`).join('')}</tr>`
+    + `<tr class="destaque"><td class="rot" colspan="2">% de expansão</td>${C.map(i => `<td class="num forte">${nCsF(I.expansao[i], 2)}</td>`).join('')}</tr>`);
+  const prensa = listaFolha([['Norma', 'DNER-ME 049 · NBR 9895', ''], ['Prensa de CBR nº', pr ? pr.numero : '—', ''],
+    ['Identificação', pr ? pr.nome || '—' : '—', ''], ['Constante K', pr ? fmt(pr.k, 4) : '—', '']]);
   const pen = CSOND.PENETRACOES.map(([t, mm], j) => `<tr><td class="rot">${t}</td><td class="num">${fmt(mm, 2)}</td>${C.map(i =>
     `<td class="num">${nCsF(s.isc.pen[i][j], 0)}</td><td class="num">${nCsF(I.cps[i].pressoes[j], 2)}</td>`).join('')}</tr>`).join('');
   const corpo = secao('Compactação')
-    + tabelaFolha([30, 14, 14, 14, 14, 14], `<tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>`,
-      lin('Cilindro nº · H inicial (mm)', i => `${s.proctor[i].cilindro || '—'} · ${nCsF(e[i].altura, 1)}`)
-      + lin('Densidade úmida (g/cm³)', i => nCsF(I.pontos[i].densidadeUmida, 3))
-      + lin('Teor de umidade (%)', i => nCsF(I.pontos[i].umidade, 1))
-      + lin('Densidade seca (g/cm³)', i => nCsF(I.pontos[i].densidadeSeca, 3), true))
-    + secao(`Expansão · início ${dataBrCs(s.isc.dataInicio)} · leitura de 96 h`)
+    + `<div class="colunas2 c-larga"><div>${compac}</div><div>${secao('Condições do ensaio')}${condicoes}</div></div>`
+    + `<div class="colunas2 c-larga"><div>${secao('Ensaio de expansão')}${expansao}</div><div>${secao('Prensa de CBR')}${prensa}</div></div>`
+    + secao('Ensaio de penetração')
+    + tabelaFolha([12, 10, 13, 13, 13, 13, 13, 13], `<tr><th>Tempo (min)</th><th>Penetr. (mm)</th><th>Leit. P2</th><th>Press. P2</th><th>Leit. P3</th><th>Press. P3</th><th>Leit. P4</th><th>Press. P4</th></tr>`, pen)
     + tabelaFolha([40, 20, 20, 20], `<tr><th></th><th>Ponto 2</th><th>Ponto 3</th><th>Ponto 4</th></tr>`,
-      linC('Leitura 96 h (mm)', i => nCsF(s.isc.leitura96[i], 2)) + linC('Expansão (%)', i => nCsF(I.expansao[i], 2), true))
-    + secao(`Penetração · prensa ${pr ? `${pr.numero} — ${pr.nome}` : '—'} · K ${pr ? fmt(pr.k, 4) : '—'}`)
-    + tabelaFolha([12, 10, 13, 13, 13, 13, 13, 13], `<tr><th>Tempo (min)</th><th>mm</th><th>Leit. P2</th><th>Press. P2</th><th>Leit. P3</th><th>Press. P3</th><th>Leit. P4</th><th>Press. P4</th></tr>`, pen)
-    + tabelaFolha([40, 20, 20, 20], `<tr><th></th><th>Ponto 2</th><th>Ponto 3</th><th>Ponto 4</th></tr>`,
-      linC('PC (2,54 mm)', i => nCsF(I.cps[i].pc, 2)) + linC("PC' (5,08 mm)", i => nCsF(I.cps[i].pcl, 2))
+        linC('Pressão corrigida p/ 2,54 mm (PC)', i => nCsF(I.cps[i].pc, 2)) + linC("Pressão corrigida p/ 5,08 mm (PC')", i => nCsF(I.cps[i].pcl, 2))
       + linC('ISC = PC / 0,7031', i => nCsF(I.cps[i].isc254, 2)) + linC("ISC' = PC' / 1,0546", i => nCsF(I.cps[i].isc508, 2))
-      + linC('ISC adotado (%)', i => nCsF(I.cps[i].isc, 1), true))
-    + paresFolha([['Hot', I.completo ? nCsF(I.hot, 1) + ' %' : '—', true], ['Dmax', I.completo ? nCsF(I.dmax, 3) + ' g/cm³' : '—', true],
-                  ['I.S.C.', nCsF(I.isc, 1) + ' %', true], ['Expansão', nCsF(I.expansaoHot, 2) + ' %', true]], 4);
-  const graf = secao('Gráficos') + `<div class="colunas2"><div>${secao('Expansão')}${grafico('cs-isc-exp', 96)}</div><div>${secao('I.S.C.')}${grafico('cs-isc-cbr', 96)}</div></div>`
-    + `<div class="colunas2"><div>${secao('Compactação')}${grafico('cs-isc-comp', 96)}</div><div>${secao('Pressão × penetração')}${grafico('cs-pen', 96)}</div></div>`
-    + paresFolha([['Hot', I.completo ? nCsF(I.hot, 1) + ' %' : '—', true], ['Dmax', I.completo ? nCsF(I.dmax, 3) + ' g/cm³' : '—', true],
-                  ['I.S.C.', nCsF(I.isc, 1) + ' %', true], ['Expansão', nCsF(I.expansaoHot, 2) + ' %', true]], 4);
+      + linC('ISC adotado (%)', i => nCsF(I.cps[i].isc, 1), true));
+  const graf = secao('Expansão') + grafico('cs-isc-exp', 100) + secao('I.S.C. (CBR)') + grafico('cs-isc-cbr', 100)
+    + secao('Compactação') + grafico('cs-isc-comp', 100) + secao('Resultados') + resultadosIscCs(I);
+  const correcoes = C.map(i => {
+    const c = (s.isc.corr || [])[i] || {};
+    return secao(`P${i + 1} — pressão × penetração`) + grafico(`cs-pen-${i}`, 100)
+      + paresFolha([['Correção 2,54 mm', ehNumero(c.p254) ? nCsF(c.p254, 2) : '—'], ['Correção 5,08 mm', ehNumero(c.p508) ? nCsF(c.p508, 2) : '—'],
+                    ['PC', nCsF(I.cps[i].pc, 2), true], ["PC'", nCsF(I.cps[i].pcl, 2), true]], 4);
+  }).join('');
+  const N = 'DNER-ME 049 · NBR 9895';
   return [
-    folha({ titulo: 'Ensaio de I.S.C.', sub: 'Índice Suporte Califórnia', norma: 'DNER-ME 049 · NBR 9895', pagina, total: total, corpo }),
-    folha({ titulo: 'I.S.C. — Gráficos', sub: 'Compactação, expansão e I.S.C. contra a umidade', norma: 'DNER-ME 049 · NBR 9895', pagina: pagina + 1, total, corpo: graf }),
+    folha({ titulo: 'Ensaio de I.S.C.', sub: 'Índice Suporte Califórnia', norma: N, pagina, total, corpo }),
+    folha({ titulo: 'Gráficos', sub: 'Expansão, I.S.C. e compactação contra a umidade', norma: N, pagina: pagina + 1, total, corpo: graf }),
+    folha({ titulo: 'Gráficos de Correções', sub: 'Pressão × penetração de cada ponto', norma: N, pagina: pagina + 2, total, corpo: correcoes }),
   ];
 }
 
 function folhaCsCarac(pacote, pagina, total) {
   const r = pacote && pacote.csond; if (!r || r.erro) return [];
-  const s = estado.csond, L = r.limites, g = r.granul, ent = entradasCsond().conjunto;
-  const P = [0, 1, 2, 3, 4];
-  const lin = (rot, f, forte) => `<tr${forte ? ' class="destaque"' : ''}><td class="rot">${rot}</td>${P.map(i => `<td class="num${forte ? ' forte' : ''}">${f(i)}</td>`).join('')}</tr>`;
+  const s = estado.csond, L = r.limites, g = r.granul, S = r.sed, ent = entradasCsond().conjunto;
+  const P = [0, 1, 2, 3, 4], lin = (rot, f, forte) => linhaCs(P, rot, f, forte);
   const cab5 = `<tr><th></th>${P.map(i => `<th>${i + 1}</th>`).join('')}</tr>`;
   const np = L.np;
   const corpo = secao('Limite de liquidez · ABNT NBR 6459')
     + tabelaFolha([35, 13, 13, 13, 13, 13], cab5,
-      lin('Cápsula nº', i => s.ll[i].capsula || '—') + lin('Cápsula + solo úmido (g)', i => nCsF(s.ll[i].umidoTara, 2))
-      + lin('Cápsula + solo seco (g)', i => nCsF(s.ll[i].secoTara, 2)) + lin('Peso da água (g)', i => nCsF(L.ll[i].agua, 2))
+      lin('Cápsula nº', i => s.ll[i].capsula || '—') + lin('Peso da cápsula + solo úmido (g)', i => nCsF(s.ll[i].umidoTara, 2))
+      + lin('Peso da cápsula + solo seco (g)', i => nCsF(s.ll[i].secoTara, 2)) + lin('Peso da água (g)', i => nCsF(L.ll[i].agua, 2))
       + lin('Peso da cápsula (g)', i => nCsF(ent.ll[i].tara, 2)) + lin('Peso do solo seco (g)', i => nCsF(L.ll[i].seco, 2))
       + lin('Teor de umidade (%)', i => nCsF(L.ll[i].umidade, 1), true) + lin('Nº de golpes', i => nCsF(s.ll[i].golpes, 0)))
     + secao('Limite de plasticidade · ABNT NBR 7180')
     + tabelaFolha([35, 13, 13, 13, 13, 13], cab5,
-      lin('Cápsula nº', i => s.lp[i].capsula || '—') + lin('Cápsula + solo úmido (g)', i => nCsF(s.lp[i].umidoTara, 2))
-      + lin('Cápsula + solo seco (g)', i => nCsF(s.lp[i].secoTara, 2)) + lin('Peso da água (g)', i => nCsF(L.lp[i].agua, 2))
+      lin('Cápsula nº', i => s.lp[i].capsula || '—') + lin('Peso da cápsula + solo úmido (g)', i => nCsF(s.lp[i].umidoTara, 2))
+      + lin('Peso da cápsula + solo seco (g)', i => nCsF(s.lp[i].secoTara, 2)) + lin('Peso da água (g)', i => nCsF(L.lp[i].agua, 2))
       + lin('Peso da cápsula (g)', i => nCsF(ent.lp[i].tara, 2)) + lin('Peso do solo seco (g)', i => nCsF(L.lp[i].seco, 2))
       + lin('Teor de umidade (%)', i => nCsF(L.lp[i].umidade, 1), true)
       + lin('Valor aceito?', i => L.aceitosLp[i] === null || L.aceitosLp[i] === undefined ? '—' : L.aceitosLp[i] ? 'SIM' : 'NÃO'))
-    + `<div class="colunas2"><div>${secao('Limite de liquidez')}${grafico('cs-ll', 96)}</div><div>${secao('Resumo dos resultados')}${listaFolha([
+    + secao('Análise granulométrica · ABNT NBR 7181 / AASHTO T 27')
+    + paresFolha([['Amostra total úmida (fina)', nCsF(s.sed.parcialUmida, 2) + ' g'], ['Amostra total seca', nCsF(S.parcialSeca, 2) + ' g']], 2)
+    + `<div class="colunas2"><div>${secao('Limite de liquidez')}${grafico('cs-ll', 100)}</div><div>${secao('Resumo dos resultados')}${listaFolha([
         ['Limite de liquidez', np ? 'NP' : nCsF(L.LL, 1), '%', true],
         ['Limite de plasticidade', np || !L.LP ? 'NP' : nCsF(L.LP, 1), '%', true],
         ['Índice de plasticidade', np ? 'NP' : nCsF(L.IP, 1), '%', true],
         ['% passando # 4,8 mm', nCsF(g.p4, 1), '%'], ['% passando # 2,0 mm', nCsF(g.p10, 1), '%'],
         ['% passando # 0,42 mm', nCsF(g.p40, 1), '%'], ['% passando # 0,074 mm', nCsF(g.p200, 1), '%'],
         ['Classificação HRB', r.hrb, '', true], ['Índice de grupo', nCsF(r.ig, 1), ''],
-        ['Classificação SUCS', r.sucs, '', true], ['% areia · % argila', `${nCsF(r.areia, 1)} · ${nCsF(r.argila, 1)}`, '%'],
+        ['Classificação SUCS', r.sucs, '', true], ['% areia', nCsF(r.areia, 1), '%'], ['% argila', nCsF(r.argila, 1), '%'],
       ])}</div></div>`;
-  return [folha({ titulo: 'Caracterização de Solos', sub: 'Limites de Atterberg e classificação', norma: 'NBR 6459 · NBR 7180 · AASHTO M 145',
-    pagina, total, corpo, obs: !np && L.LP !== null && !L.lpValido ? 'LP: menos de três determinações aceitas (ERRO na planilha) — refazer.' : '' })];
-}
-
-function folhaCsSed(pacote, pagina, total) {
-  const r = pacote && pacote.csond; if (!r || r.erro) return [];
-  const s = estado.csond, S = r.sed, F = S.fracoes || {}, pic = picnometroCs(s.sed.picnometro);
-  const gross = S.grosso.map(x => `<tr><td class="rot">${x.nome}</td><td class="num">${fmt(x.mm, x.mm < 10 ? 2 : 1)}</td><td class="num">${nCsF(x.retido, 2)}</td><td class="num">${nCsF(x.pctRetido, 2)}</td><td class="num forte">${pctCs(x.passa, 2)}</td></tr>`).join('');
-  const fino = S.fino.map(x => `<tr><td class="rot">${x.nome}</td><td class="num">${fmt(x.mm, 3)}</td><td class="num">${nCsF(x.retido, 2)}</td><td class="num">${nCsF(x.pctRetido, 2)}</td><td class="num forte">${pctCs(x.passa, 2)}</td></tr>`).join('');
-  const sed = S.sed.map(q => `<tr><td class="rot">${q.rot}</td><td class="num">${nCsF(q.seg, 0)}</td><td class="num">${nCsF(q.temp, 2)}</td><td class="num">${nCsF(q.leitura, 3)}</td>
-    <td class="num">${nCsF(q.ld, 5)}</td><td class="num">${nCsF(q.lc, 4)}</td><td class="num">${ehNumero(q.viscosidade) ? (q.viscosidade * 1e6).toFixed(3) + 'e-6' : '—'}</td>
-    <td class="num">${nCsF(q.queda, 2)}</td><td class="num">${nCsF(q.diametro, 4)}</td><td class="num forte">${pctCs(q.q, 2)}</td></tr>`).join('');
-  const corpo = `<div class="colunas2"><div>${secao('Amostra e umidade higroscópica')}${listaFolha([
-      ['Amostra total úmida', nCsF(s.sed.totalUmida, 2), 'g'], ['Material retido # 10', nCsF(S.retidoNo10, 2), 'g'],
-      ['Úmido passado # 10', nCsF(S.umidoPassado10, 2), 'g'], ['Seco passado # 10', nCsF(S.secoPassado10, 2), 'g'],
-      ['Amostra total seca', nCsF(S.totalSeca, 2), 'g', true], ['Parcial úmida · seca', `${nCsF(s.sed.parcialUmida, 1)} · ${nCsF(S.parcialSeca, 2)}`, 'g'],
-      [`Cápsula ${s.sed.higro.capsula || '—'}: úmido · seco`, `${nCsF(s.sed.higro.umidoTara, 2)} · ${nCsF(s.sed.higro.secoTara, 2)}`, 'g'],
-      ['Umidade higroscópica', nCsF(S.higro.umidade, 2), '%', true], ['Fator de correção', nCsF(S.fatorCorrecao, 4), ''],
-    ])}</div><div>${secao('Densidade real dos grãos')}${listaFolha([
-      ['Picnômetro nº', s.sed.picnometro || '—', ''], ['Picnômetro + água', pic ? nCsF(pic.pesoAgua, 2) : '—', 'g'],
-      ['Picnômetro + água + amostra', nCsF(s.sed.picAguaAmostra, 2), 'g'], ['Temperatura', nCsF(s.sed.temperaturaPic, 1), '°C'],
-      ['Fator de correção (Fc)', nCsF(S.fc, 4), ''], ['Amostra seca', nCsF(s.sed.amostraSecaPic, 2), 'g'],
-      ['Massa específica real', nCsF(S.massaEspecifica, 3), 'g/cm³', true],
-      [`Densímetro ${s.cfg.densimetro.numero || '—'} · % # 10`, pctCs(S.grosso[8].passa, 2), '%'], ['Fator Q/Lc', nCsF(S.fq, 3), ''],
-    ])}</div></div>`
-    + `<div class="colunas2"><div>${secao('Peneiramento grosso')}${tabelaFolha([22, 16, 22, 20, 20], '<tr><th>Peneira</th><th>mm</th><th>Acum. (g)</th><th>% ret.</th><th>% passa</th></tr>', gross)}</div>
-       <div>${secao('Peneiramento fino')}${tabelaFolha([22, 16, 22, 20, 20], '<tr><th>Peneira</th><th>mm</th><th>Acum. (g)</th><th>% ret.</th><th>% passa</th></tr>', fino)}</div></div>`
-    + secao('Sedimentação')
-    + tabelaFolha([8, 8, 9, 9, 11, 10, 12, 10, 12, 11], '<tr><th>Tempo</th><th>s</th><th>T (°C)</th><th>L</th><th>Ld</th><th>Lc</th><th>Viscos.</th><th>Alt. queda</th><th>Diâm. (mm)</th><th>Q %</th></tr>', sed)
-    + `<div class="colunas2"><div>${secao('Curva granulométrica')}${grafico('cs-granul', 96)}</div><div>${secao('Classificação pelo diagrama triangular')}${listaFolha([
-        ['% Pedra', pctCs(F.pedra, 2), '%'], ['% Pedregulho', pctCs(F.pedregulho, 2), '%'], ['% Areia', pctCs(F.areia, 2), '%'],
-        ['% Silte', pctCs(F.silte, 2), '%'], ['% Argila', pctCs(F.argila, 2), '%'], ['Classificação', r.nomeSolo || '—', '', true],
-      ])}</div></div>`;
-  return [folha({ titulo: 'Análise Granulométrica e Sedimentação', sub: '', norma: 'NBR 7181', pagina, total, corpo })];
+  return [folha({ titulo: 'Caracterização de Solos', sub: 'Limites de Atterberg e classificação', norma: 'NBR 6459/16 · NBR 7180/16',
+    pagina, total, corpo, obs: !np && L.LP !== null && !L.lpValido ? 'LP: menos de três determinações aceitas — refazer.' : '' })];
 }
 
 function folhaCsMct(pacote, pagina, total) {
   const r = pacote && pacote.csond; if (!r || r.erro) return [];
-  const s = estado.csond, M = r.mct, ent = entradasCsond().conjunto.mct;
-  const pas = s.mct.pastilhas.map((p, i) => `<tr><td class="rot">${['I', 'II', 'III'][i]}</td><td class="num">${p.anel || '—'}</td><td class="num">${nCsF(ent.pastilhas[i].diametroInicial, 2)}</td>
-    <td class="num">${nCsF(p.l0, 2)}</td><td class="num">${nCsF(p.l120, 2)}</td><td class="num">${nCsF(p.l240, 2)}</td><td class="num forte">${nCsF(M.contracoes[i], 2)}</td></tr>`).join('');
-  const pen = s.mct.penetracoes.map((p, i) => `<tr><td class="rot">${['I', 'II', 'III'][i]} · anel ${s.mct.pastilhas[i].anel || '—'}</td>${p.map(v => `<td class="num">${nCsF(v, 2)}</td>`).join('')}</tr>`).join('');
+  const s = estado.csond, M = r.mct, ent = entradasCsond().conjunto.mct, K = [0, 1, 2];
+  const anel = i => s.mct.pastilhas[i].anel || ['I', 'II', 'III'][i];
+  const pas = K.map(i => { const p = s.mct.pastilhas[i]; return `<tr><td class="rot">${anel(i)}</td><td class="num">${nCsF(ent.pastilhas[i].diametroInicial, 2)}</td>
+    <td class="num">${nCsF(p.l0, 2)}</td><td class="num">${nCsF(p.l120, 2)}</td><td class="num">${nCsF(p.l240, 2)}</td><td class="num forte">${nCsF(M.contracoes[i], 2)}</td></tr>`; }).join('');
+  const pen = [0, 1, 2].map(j => `<tr><td class="rot">${j + 1}ª leitura</td>${K.map(i => `<td class="num">${nCsF((s.mct.penetracoes[i] || [])[j], 2)}</td>`).join('')}</tr>`).join('');
   const corpo = secao('Método das pastilhas para identificação expedita do grupo MCT')
-    + tabelaFolha([16, 12, 16, 14, 14, 14, 14], '<tr><th>Pastilha</th><th>Anel</th><th>Valor inicial</th><th>0°</th><th>120°</th><th>240°</th><th>Contração (mm)</th></tr>', pas)
-    + paresFolha([['Contração média (Ct)', nCsF(M.contracaoMedia, 2) + ' mm'], ["c'", nCsF(M.cLinha, 2), true]], 2)
+    + secao('Contração (mm)')
+    + tabelaFolha([18, 18, 16, 16, 16, 16], '<tr><th>Anel</th><th>Valor inicial</th><th>0°</th><th>120°</th><th>240°</th><th>Média</th></tr>', pas)
+    + paresFolha([['Contração média (Ct)', nCsF(M.contracaoMedia, 2) + ' mm', true], ["c'", nCsF(M.cLinha, 2), true]], 2)
     + `<div class="obs">Ct = 0,1 a 0,5 mm ⇒ c' = (log₁₀ Ct + 1) / 0,904 · Ct &gt; 0,6 mm ⇒ c' = (log₁₀ Ct + 0,7) / 0,5</div>`
-    + secao('Penetração (mm)') + tabelaFolha([34, 22, 22, 22], '<tr><th>Pastilha</th><th>1ª</th><th>2ª</th><th>3ª</th></tr>', pen)
+    + secao('Penetração (mm)')
+    + tabelaFolha([28, 24, 24, 24], `<tr><th></th>${K.map(i => `<th>Anel ${anel(i)}</th>`).join('')}</tr>`, pen)
     + paresFolha([['Penetração média', nCsF(M.penetracaoMedia, 2) + ' mm', true], ['Classificação MCT (preliminar)', r.classeMct || '—', true]], 2)
-    + secao("Gráfico c' × penetração") + grafico('cs-mct', 80);
-  return [folha({ titulo: 'Classificação de Solos Tropicais', sub: 'Metodologia MCT', norma: 'DER/SP M 196', pagina, total, corpo, obs: s.mct.obs || '' })];
+    + secao("Coeficiente c' × penetração") + grafico('cs-mct', 100);
+  return [folha({ titulo: 'Classificação de Solos Tropicais', sub: 'Segundo a metodologia MCT', norma: 'DER/SP M 196', pagina, total, corpo, obs: s.mct.obs || '' })];
+}
+
+function folhaCsSed(pacote, pagina, total) {
+  const r = pacote && pacote.csond; if (!r || r.erro) return [];
+  const s = estado.csond, S = r.sed, F = S.fracoes || {}, pic = picnometroCs(s.sed.picnometro), H = S.higro || {};
+  const taraH = ((entradasCsond().conjunto.sed || {}).higro || {}).tara;
+  const gross = S.grosso.map(x => `<tr><td class="num">${fmt(x.mm, x.mm < 10 ? 2 : 1)}</td><td class="rot">${x.nome}</td><td class="num">${nCsF(x.retido, 2)}</td><td class="num">${nCsF(x.pctRetido, 2)}</td><td class="num forte">${pctCs(x.passa, 2)}</td></tr>`).join('');
+  const fino = S.fino.map(x => `<tr><td class="num">${fmt(x.mm, 3)}</td><td class="rot">${x.nome}</td><td class="num">${nCsF(x.retido, 2)}</td><td class="num">${nCsF(x.pctRetido, 2)}</td><td class="num">${nCsF(x.passaParcial, 2)}</td><td class="num forte">${pctCs(x.passa, 2)}</td></tr>`).join('');
+  const sed = S.sed.map(q => `<tr><td class="rot">${q.rot}</td><td class="num">${nCsF(q.seg, 0)}</td><td class="num">${nCsF(q.temp, 2)}</td><td class="num">${nCsF(q.leitura, 3)}</td>
+    <td class="num">${nCsF(q.ld, 5)}</td><td class="num">${nCsF(q.lc, 4)}</td><td class="num">${ehNumero(q.viscosidade) ? (q.viscosidade * 1e6).toFixed(3) + 'e-6' : '—'}</td>
+    <td class="num">${nCsF(q.queda, 2)}</td><td class="num">${nCsF(q.diametro, 4)}</td><td class="num forte">${pctCs(q.q, 2)}</td></tr>`).join('');
+  const corpo = `<div class="colunas3"><div>${secao('Amostra em estudo')}${listaFolha([
+      ['Amostra total úmida', nCsF(s.sed.totalUmida, 2), 'g'], ['Material seco retido # 10', nCsF(S.retidoNo10, 2), 'g'],
+      ['Material úmido passado # 10', nCsF(S.umidoPassado10, 2), 'g'], ['Material seco passado # 10', nCsF(S.secoPassado10, 2), 'g'],
+      ['Amostra total seca', nCsF(S.totalSeca, 2), 'g', true], ['Peso parcial úmido', nCsF(s.sed.parcialUmida, 2), 'g'],
+      ['Peso parcial seco', nCsF(S.parcialSeca, 2), 'g'], ['Fator de correção', nCsF(S.fatorCorrecao, 4), ''],
+    ])}</div><div>${secao('Umidade higroscópica')}${listaFolha([
+      ['Cápsula nº', s.sed.higro.capsula || '—', ''], ['Peso da cápsula', nCsF(taraH, 2), 'g'],
+      ['Cápsula + solo úmido', nCsF(s.sed.higro.umidoTara, 2), 'g'], ['Cápsula + solo seco', nCsF(s.sed.higro.secoTara, 2), 'g'],
+      ['Água', nCsF(H.agua, 2), 'g'], ['Solo seco', nCsF(H.seco, 2), 'g'], ['Umidade higroscópica', nCsF(H.umidade, 2), '%', true],
+    ])}</div><div>${secao('Densidade real dos grãos')}${listaFolha([
+      ['Picnômetro nº', s.sed.picnometro || '—', ''], ['Picnômetro + água + amostra', nCsF(s.sed.picAguaAmostra, 2), 'g'],
+      ['Temperatura da suspensão', nCsF(s.sed.temperaturaPic, 1), '°C'], ['Fator de correção (Fc)', nCsF(S.fc, 4), ''],
+      ['Picnômetro + água', pic ? nCsF(pic.pesoAgua, 2) : '—', 'g'], ['Peso da amostra seca', nCsF(s.sed.amostraSecaPic, 2), 'g'],
+      ['Massa específica real', nCsF(S.massaEspecifica, 3), 'g/cm³', true],
+    ])}</div></div>`
+    + `<div class="colunas2"><div>${secao('Peneiramento grosso')}${tabelaFolha([18, 20, 20, 21, 21], '<tr><th>mm</th><th>Pol. / nº</th><th>Peso acum. (g)</th><th>% retido acum.</th><th>% passante total</th></tr>', gross)}</div>
+       <div>${secao('Peneiramento fino')}${tabelaFolha([15, 15, 17, 17, 18, 18], '<tr><th>Abertura (mm)</th><th>Número</th><th>Peso acum. (g)</th><th>% retido acum.</th><th>% passante parcial</th><th>% passante total</th></tr>', fino)}</div></div>`
+    + paresFolha([[`Densímetro nº`, s.cfg.densimetro.numero || '—'], ['% passa # 10 (N)', pctCs(S.grosso[8].passa, 2)],
+                  ['Correção do menisco', '0,0012 no Lc'], ['Densidade real (# 10)', nCsF(S.massaEspecifica, 3)],
+                  ['Fator Q/Lc (FQ)', nCsF(S.fq, 3)], ['FQ = N·δ / Ms·(δ−1)·1000', '']], 3)
+    + secao('Sedimentação')
+    + tabelaFolha([8, 8, 9, 9, 11, 10, 12, 10, 12, 11], '<tr><th>Tempo</th><th>Seg.</th><th>Temp. (°C)</th><th>L</th><th>Ld</th><th>Lc</th><th>Viscosidade</th><th>Alt. queda</th><th>Diâm. (mm)</th><th>Q %</th></tr>', sed)
+    + `<div class="colunas2"><div>${secao('Classificação do solo')}${listaFolha([
+        ['% Pedra', pctCs(F.pedra, 2), '%'], ['% Pedregulho', pctCs(F.pedregulho, 2), '%'], ['% Areia', pctCs(F.areia, 2), '%'],
+        ['% Silte', pctCs(F.silte, 2), '%'], ['% Argila', pctCs(F.argila, 2), '%'],
+      ])}</div><div>${secao('Classificação pelo diagrama triangular')}${listaFolha([['Classificação', r.nomeSolo || '—', '', true]])}</div></div>`;
+  return [
+    folha({ titulo: 'Análise Granulométrica e Sedimentação', sub: '', norma: 'NBR 7181', pagina, total, corpo }),
+    folha({ titulo: 'Curva Granulométrica', sub: '', norma: 'NBR 7181', pagina: pagina + 1, total,
+            corpo: secao('Curva granulométrica') + grafico('cs-granul', 100, '', 1.45) }),
+  ];
 }
 
 function folhaCsMr(pacote, pagina, total) {
   const r = pacote && pacote.csond; if (!r || r.erro) return [];
-  const s = estado.csond, R = r.mr, d = s.mr, I = r.isc;
+  const s = estado.csond, R = r.mr, d = s.mr;
   const linhas = d.linhas.map(l => `<tr><td class="num">${nCsF(l.s3, 3)}</td><td class="num">${nCsF(l.sd, 3)}</td><td class="num">${nCsF(l.desl, 3)}</td><td class="num">${nCsF(l.def, 3)}</td><td class="num forte">${nCsF(l.mr, 3)}</td></tr>`).join('');
   const mod = R.modelos || {};
-  const linM = (n, m) => m ? `<tr><td class="rot">${n}</td><td class="num">${fmt(m.k1, 2)}</td><td class="num">${fmt(m.k2, 4)}</td><td class="num">${m.k3 === undefined ? '—' : fmt(m.k3, 4)}</td><td class="num">${fmt(m.r2, 4)}</td></tr>` : '';
-  const corpo = `<div class="colunas2"><div>${secao('Informações gerais')}${listaFolha([
-      ['Norma de referência', d.norma || 'DNIT 134/2018-ME', ''], ['Laboratório', d.laboratorio || '—', ''],
-      ['Data do ensaio', dataBrCs(d.data), ''], ['Identificação da amostra', d.amostra || estado.medicao.furo || '—', ''],
-      ['Tipo de amostra', d.tipo || '—', ''], ['Energia de compactação', d.energiaTexto || '—', ''],
-      ['Tamanho do CP', d.tamanho, 'mm'], ['Curso do LVDT', nCsF(d.curso, 0), 'mm'],
-    ])}</div><div>${secao('Moldagem e índices físicos')}${listaFolha([
-      ['Peso esp. seco máx. (ISC)', nCsF(I.dmax, 3), 'g/cm³'], ['Umidade ótima (ISC)', nCsF(I.hot, 1), '%'],
-      ['Água a adicionar', nCsF(R.aguaAdicionar, 1), 'g'], ['Solo úmido por camada', nCsF(R.soloPorCamada, 1), 'g'],
-      ['Teor de umidade do CP', nCsF(R.umidadeCP, 2), '%', true], ['Peso esp. seco do CP', nCsF(R.pesoEspecificoSeco, 3), 'g/cm³', true],
-      ['Grau de compactação', nCsF(R.grauCompactacao, 1), '%', true], ['Desvio de umidade', nCsF(R.desvioUmidade, 2), '%'],
-    ])}</div></div>`
-    + secao('Quadro de resultados')
-    + tabelaFolha([20, 20, 20, 20, 20], '<tr><th>σ3 (MPa)</th><th>σd (MPa)</th><th>δ recup. (mm)</th><th>ε resil. (%)</th><th>MR (MPa)</th></tr>', linhas)
-    + paresFolha([['Desl. perm. no condicionamento', nCsF(d.deslCond, 3) + ' mm'], ['Desl. perm. total', nCsF(d.deslTotal, 3) + ' mm'],
-                  ['MR médio', nCsF(R.mrMedio, 2) + ' MPa', true]], 3)
-    + secao('Geração dos modelos (log-log)')
-    + tabelaFolha([34, 17, 17, 16, 16], '<tr><th>Modelo</th><th>K1</th><th>K2</th><th>K3</th><th>R²</th></tr>',
-      linM('Dependente da tensão confinante · MR = K1·σ3^K2', mod.confinante) + linM('Dependente da tensão desvio · MR = K1·σd^K2', mod.desvio)
-      + linM('Somatório de tensões · MR = K1·θ^K2', mod.somatorio) + linM('Combinado · MR = K1·σ3^K2·σd^K3', mod.combinado));
-  return [folha({ titulo: 'Módulo de Resiliência', sub: 'Relatório de ensaio', norma: 'DNIT 134/2018-ME', pagina, total, corpo, obs: d.obs || '' })];
+  const caixa = (formula, m, k3, extra = '') => `<div class="obs formula-mr">${formula}</div>` + listaFolha([['K1', m ? fmt(m.k1, 2) : '—', ''], ['K2', m ? fmt(m.k2, 2) : '—', ''],
+    ...(k3 ? [['K3', m && ehNumero(m.k3) ? fmt(m.k3, 2) : '—', '']] : []), ['R²', m ? fmt(m.r2, 2) : '—', '', true]]) + extra;
+  const modelo = (tit, tipo, formula, m, k3, extra) => secao(tit) + `<div class="colunas2 c-larga"><div>${grafico(tipo, 100)}</div><div>${caixa(formula, m, k3, extra)}</div></div>`;
+  // legenda do modelo combinado: um nível de σ3 por cor (as mesmas do gráfico)
+  const niveisS3 = [];
+  d.linhas.forEach(l => { if (!ehNumero(l.s3) || !(l.s3 > 0)) return; const n = niveisS3.find(v => Math.abs(v.s3 - l.s3) < 0.006); if (n) n.v.push(l.s3); else niveisS3.push({ s3: l.s3, v: [l.s3] }); });
+  niveisS3.sort((a, b) => a.s3 - b.s3);
+  const legenda = niveisS3.length ? `<div class="obs legenda-mr"><b>σ<sub>3</sub> (MPa)</b>${niveisS3.map((n, k) =>
+    `<span><i style="background:var(--s${(k % 4) + 1})"></i>${fmt(n.v.reduce((a, b) => a + b, 0) / n.v.length, 3)}</span>`).join('')}</div>` : '';
+  const ident = listaFolha([
+    ['Identificação do empreendimento', estado.medicao.obra || '—', ''], ['Norma de referência', d.norma || 'DNIT 134/2018-ME', ''],
+    ['Identificação do laboratório', d.laboratorio || '—', ''], ['Data do ensaio', dataBrCs(d.data), ''],
+    ['Identificação e natureza da amostra', d.amostra || estado.medicao.furo || '—', ''], ['Energia de compactação', d.energiaTexto || '—', ''],
+    ['Tamanho do corpo de prova', d.tamanho || '—', 'mm'], ['Teor de umidade do corpo de prova', nCsF(R.umidadeCP, 2), '%'],
+    ['Peso específico seco do corpo de prova', nCsF(R.pesoEspecificoSeco, 3), 'g/cm³'], ['Grau de compactação do corpo de prova', nCsF(R.grauCompactacao, 1), '%'],
+    ['Desvio de umidade', nCsF(R.desvioUmidade, 2), '%'], ['Curso do LVDT empregado', nCsF(d.curso, 0), 'mm']]);
+  const p1 = secao('Identificação') + ident + secao('Quadro de resultados')
+    + tabelaFolha([20, 20, 20, 20, 20], '<tr><th>Tensão confinante σ3 (MPa)</th><th>Tensão desvio σd (MPa)</th><th>Deslocamento recuperável δ (mm)</th><th>Deformação resiliente ε (%)</th><th>Módulo de resiliência MR (MPa)</th></tr>', linhas)
+    + listaFolha([['Deslocamento permanente acumulado no condicionamento', nCsF(d.deslCond, 3), 'mm'],
+                  ['Deslocamento permanente acumulado total', nCsF(d.deslTotal, 3), 'mm'], ['Média do módulo de resiliência', nCsF(R.mrMedio, 2), 'MPa', true]]);
+  const p2 = modelo('Modelo dependente da tensão confinante', 'cs-mr-s3', 'MR = K<sub>1</sub> · σ<sub>3</sub><sup>K2</sup>', mod.confinante)
+    + modelo('Modelo dependente da tensão desvio', 'cs-mr-sd', 'MR = K<sub>1</sub> · σ<sub>d</sub><sup>K2</sup>', mod.desvio);
+  const p3 = modelo('Modelo dependente do somatório de tensões', 'cs-mr-th', 'MR = K<sub>1</sub> · θ<sup>K2</sup>', mod.somatorio)
+    + modelo('Modelo combinado', 'cs-mr-comb', 'MR = K<sub>1</sub> · σ<sub>3</sub><sup>K2</sup> · σ<sub>d</sub><sup>K3</sup>', mod.combinado, true, legenda);
+  const T = 'Relatório de Ensaio de Módulo de Resiliência', N = 'DNIT 134/2018-ME', cp = 'Corpo de prova 1';
+  return [
+    folha({ titulo: T, sub: cp, norma: N, pagina, total, corpo: p1, obs: d.obs || '' }),
+    folha({ titulo: T, sub: cp + ' · Geração dos modelos', norma: N, pagina: pagina + 1, total, corpo: p2 }),
+    folha({ titulo: T, sub: cp + ' · Geração dos modelos', norma: N, pagina: pagina + 2, total, corpo: p3 }),
+  ];
 }
 
 /** A linha do RESUMO da planilha, para este furo. */
@@ -11927,7 +12041,7 @@ function degrauEscala(v, paraCima) {
 
 function desenharReta(ll, alvo) {
   const svg = alvo || $('chartLL');
-  const W = svg.clientWidth || 900, H = 280;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 280);
   const m = { t:14, r:18, b:44, l:52 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -12029,7 +12143,7 @@ function desenharReta(ll, alvo) {
 /* --- gráfico: curva granulométrica, eixo X logarítmico --- */
 function desenharCurva(g, alvo) {
   const svg = alvo || $('chart');
-  const W = svg.clientWidth || 900, H = 320;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 320);
   const m = { t:14, r:16, b:44, l:46 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -12718,6 +12832,7 @@ function gerarPdfLote() {
     if (typeof SECOES_SO !== 'undefined') SECOES_SO = null;
     lista.forEach(e => {
       aplicarEnsaio(e.foto);
+      encherFolhas($('folhaImpressao'));
       partes.push($('folhaImpressao').innerHTML);
     });
   } finally {
@@ -13129,6 +13244,7 @@ function gerarResumoLote() {
   if (!escopoAnalise().length) return;
   const folha = $('folhaImpressao');
   folha.innerHTML = folhasDoResumo();
+  encherFolhas(folha, null);
   window.addEventListener('afterprint', () => atualizar(), { once: true });
   folha.classList.add('montando');
   requestAnimationFrame(() => { folha.classList.remove('montando'); window.print(); });
@@ -14676,7 +14792,7 @@ function curvaSuave(pts) {
 
 function desenharCompactacao(c, alvo) {
   const svg = alvo || $('chartComp');
-  const W = svg.clientWidth || 900, H = 290;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 290);
   const m = { t:14, r:18, b:44, l:58 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -15088,7 +15204,7 @@ function montarResumoDosCps(todos) {
 
 function desenharCbr(r, alvo) {
   const svg = alvo || $('chartCbr');
-  const W = svg.clientWidth || 900, H = 290;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 290);
   const m = { t:14, r:18, b:44, l:56 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -15381,7 +15497,7 @@ function atualizarInSitu(comp) {
 
 function desenharInSitu(r, alvo) {
   const svg = alvo || $('chartIs');
-  const W = svg.clientWidth || 900, H = 270;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 270);
   const m = { t:16, r:16, b:42, l:52 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -15995,7 +16111,7 @@ function atualizarSedimentacao() {
 
 function desenharSedimentacao(s, alvo) {
   const svg = alvo || $('chartSed');
-  const W = svg.clientWidth || 900, H = 310;
+  const W = svg.clientWidth || 900, H = alturaGraf(svg, 310);
   const m = { t:14, r:16, b:46, l:46 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
@@ -16090,7 +16206,8 @@ const FOLHAS_POR_MODO = {
   simples:        ['compactacao', 'insitu'],
   caracterizacao: ['compactacao', 'granulometria', 'limites', 'cbr', 'insitu'],
   /* Caracterização de sondagem: as folhas da planilha, na ordem dela */
-  csond:          ['csProctor', 'csIsc', 'csCarac', 'csSed', 'csMct', 'csMr', 'csResumo'],
+  /* na ordem do laudo da planilha de origem: 11 folhas */
+  csond:          ['csProctor', 'csIsc', 'csCarac', 'csMct', 'csSed', 'csMr'],
   completo:       ['compactacao', 'granulometria', 'equivalente', 'limites',
                    'cbr', 'insitu', 'sedimentacao', 'resumo'],
   /* CAUQ: os sete ensaios cabem numa folha só, como na planilha de origem */
@@ -16168,8 +16285,8 @@ function listaFolha(itens) {
 }
 
 /** Espaço reservado para um gráfico; preenchido depois que a folha entra no DOM. */
-const grafico = (tipo, larguraPct = 100, arg = '') =>
-  `<div class="graf"><svg data-graf="${tipo}" data-arg="${arg}" style="width:${larguraPct}%"></svg></div>`;
+const grafico = (tipo, larguraPct = 100, arg = '', teto = 0) =>
+  `<div class="graf"><svg data-graf="${tipo}" data-arg="${arg}"${teto ? ` data-teto="${teto}"` : ''} style="width:${larguraPct}%"></svg></div>`;
 
 /* Pendências do ensaio em curso, levantadas uma vez por montagem e usadas por
    todas as folhas — nenhuma delas recebe o cálculo inteiro para descobrir isso. */
@@ -16900,6 +17017,7 @@ function montarFolhas(r) {
 
   const alvo = $('folhaImpressao');
   alvo.innerHTML = html;
+  FOLHA_R = r;
   desenharGraficosDaFolha(r, alvo);
 
   // a aba Resumo mostra a folha que fecha o relatório da família em curso
@@ -16917,6 +17035,99 @@ function montarFolhas(r) {
   }
 
   $('modoFolhas').textContent = `${contagem} ${contagem === 1 ? 'folha' : 'folhas'} no relatório`;
+}
+
+/** Altura do desenho: a padrão de cada gráfico, ou a que a folha pediu para encher a página. */
+function alturaGraf(svg, padrao) {
+  const a = svg && svg.dataset ? Number(svg.dataset.altura) : 0;
+  return a > 0 ? Math.round(a) : padrao;
+}
+
+/* ------------------------------------------------------------
+   Folha ocupando a página inteira
+   Antes de imprimir (ou gerar o PDF), cada folha é medida na largura útil do A4.
+   O que sobra embaixo vai primeiro para os gráficos (mais altos, desenhados de
+   novo na largura real), depois para as linhas das tabelas e, por fim, para o
+   espaço das assinaturas — que ficam no pé da página.
+   ------------------------------------------------------------ */
+let FOLHA_R = null;               // cálculo usado na última montagem das folhas
+const MM_PX = 96 / 25.4;
+
+function encherFolhas(alvo = $('folhaImpressao'), r = FOLHA_R) {
+  if (!alvo) return;
+  const tinha = ['montando', 'medindo'].filter(c => alvo.classList.contains(c));
+  alvo.classList.add('montando', 'medindo');
+  try {
+    alvo.querySelectorAll('.folha').forEach(folha => encherFolha(folha, r));
+  } finally {
+    ['montando', 'medindo'].forEach(c => { if (!tinha.includes(c)) alvo.classList.remove(c); });
+  }
+}
+
+function encherFolha(folha, r) {
+  // A4 menos as margens de 8 mm, com 4 mm de folga para não vazar uma página em branco
+  const alvoPx = ((folha.classList.contains('paisagem') ? 210 : 297) - 16 - 4) * MM_PX;
+  const altura = () => folha.getBoundingClientRect().height;
+  if (folha.dataset.cheia) return;
+  folha.dataset.cheia = '1';
+  let sobra;
+
+  // 1 · gráficos: desenhados de novo na largura real; a sobra vai para eles, por linha
+  //     (dois lado a lado crescem juntos), sem passar da largura
+  const svgs = r ? [...folha.querySelectorAll('.graf svg[data-graf]')] : [];
+  if (svgs.length) {
+    desenharGraficosDaFolha(r, folha);
+    sobra = alvoPx - altura();
+    const linhas = [];
+    svgs.forEach(svg => {
+      if (!svg.isConnected) return;
+      const b = svg.getBoundingClientRect();
+      if (!b.height || !b.width) return;
+      let l = linhas.find(x => Math.abs(x.topo - b.top) < 6);
+      if (!l) linhas.push(l = { topo: b.top, itens: [] });
+      l.itens.push({ svg, w: b.width, h: b.height });
+    });
+    if (linhas.length) {
+      // sobra negativa: a folha não cabia — os gráficos encolhem até caber (mínimo 120 px)
+      // (folha bem maior que a página — vai ocupar duas de qualquer jeito — fica como está)
+      const porLinha = sobra < -alvoPx * 0.3 ? 0 : sobra / linhas.length;
+      linhas.forEach(l => {
+        const cabe = Math.min(...l.itens.map(i => i.w * (Number(i.svg.dataset.teto) || 1) - i.h));
+        const mais = Math.min(porLinha, Math.max(0, cabe));
+        if (Math.abs(mais) < 4) return;
+        l.itens.forEach(i => { i.svg.dataset.altura = String(Math.round(Math.max(120, i.h + mais))); });
+      });
+      desenharGraficosDaFolha(r, folha);
+      const passou = altura() - alvoPx;
+      if (passou > 0 && sobra > 0) {
+        svgs.filter(x => x.dataset.altura).forEach(x => {
+          x.dataset.altura = String(Math.max(120, Number(x.dataset.altura) - passou / linhas.length)); });
+        desenharGraficosDaFolha(r, folha);
+      }
+    }
+  }
+  sobra = alvoPx - altura();
+  if (sobra <= 2) return;
+
+  // 2 · linhas das tabelas um pouco mais altas (até 7 px cada): leitura mais folgada
+  const linhasTab = [...folha.querySelectorAll('table.f tbody tr, table.pares tr, table.cab tr')]
+    .filter(tr => tr.offsetHeight > 0);
+  if (linhasTab.length) {
+    // folha marcada com .linhas-altas (ex.: compactação): linhas bem mais folgadas, gráfico mais baixo
+    const mais = Math.min(folha.querySelector('.linhas-altas') ? 16 : 7, sobra / linhasTab.length);
+    if (mais >= 0.5) {
+      const alturas = linhasTab.map(tr => tr.getBoundingClientRect().height);
+      linhasTab.forEach((tr, i) => { tr.style.height = (alturas[i] + mais).toFixed(2) + 'px'; });
+      sobra = alvoPx - altura();
+    }
+  }
+
+  // 3 · o resto empurra as assinaturas para o pé da página
+  const assin = [...folha.querySelectorAll('.assin')].pop();
+  if (assin && sobra > 1) {
+    const atual = parseFloat(getComputedStyle(assin).paddingTop) || 0;
+    assin.style.paddingTop = (atual + sobra - 1).toFixed(1) + 'px';
+  }
 }
 
 /** Os gráficos só podem ser desenhados depois que os <svg> existem no documento. */
@@ -18421,6 +18632,7 @@ async function montarPdf() {
   folhaImp.classList.add('montando', 'para-pdf');
   try {
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    encherFolhas(folhaImp);
     const folhas = [...folhaImp.querySelectorAll('.folha')];
     if (!folhas.length) throw new Error('não há folha para enviar');
     resolverCoresSvg(folhaImp);
@@ -19576,6 +19788,7 @@ document.addEventListener('change', e => {
 /* impressão do relatório — vale para os dois botões */
 function imprimirRelatorio(depois) {
   const folha = $('folhaImpressao');
+  encherFolhas(folha);
   folha.classList.add('montando');
   requestAnimationFrame(() => {
     folha.classList.remove('montando');

@@ -770,6 +770,27 @@ details.card > summary::-webkit-details-marker{display:none;}
 .rasc-acoes{display:flex; gap:10px; margin-top:14px; position:sticky; bottom:0; background:var(--card); padding:8px 0;}
 .rasc-previa img{max-width:100%; margin-top:8px; border:1px solid var(--border);}
 @media print{ .rasc-fundo, .rasc-card{display:none !important;} }
+/* foto do rascunho anexada na aba (para o analista) */
+.anexos-bloco{margin-top:14px; padding-top:12px; border-top:1px dashed var(--border);}
+.anexos-bloco h3{font-size:14px; margin:0 0 4px;}
+.anexos-grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-top:10px;}
+.anexo{margin:0; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px; background:var(--card);
+  display:flex; flex-direction:column; gap:4px; font-size:12px;}
+.anexo-ver{border:0; padding:0; background:var(--bg); cursor:zoom-in; height:120px; display:flex;
+  align-items:center; justify-content:center; overflow:hidden; border-radius:6px;}
+.anexo-ver img{width:100%; height:100%; object-fit:cover;}
+.anexo-pdf{font-weight:700; color:var(--danger); font-size:20px;}
+.anexo-sem{font-size:11px; color:var(--text-mut); padding:6px; text-align:center;}
+.anexo figcaption{word-break:break-word; line-height:1.25;}
+.anexo-visor{position:fixed; inset:0; z-index:9500; background:rgba(0,0,0,.88); display:flex; flex-direction:column;}
+.anexo-visor[hidden]{display:none;}
+.anexo-visor-topo{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 12px; background:var(--card); color:var(--text);}
+.anexo-visor-botoes{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap;}
+.anexo-visor-corpo{flex:1; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:8px;}
+.anexo-visor-corpo img{max-width:100%; height:auto; cursor:pointer; transition:transform .2s; background:var(--mk-branco);}
+.anexo-visor-corpo iframe{width:100%; height:100%; min-height:70vh; border:0; background:var(--mk-branco);}
+.anexo-visor-corpo .hint{color:var(--mk-branco);}
+@media print{ .anexos-bloco, .anexo-visor{display:none !important;} }
 /* ================= BLOCOS DE RESULTADO ================= */
 .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px;}
 .tile{
@@ -10593,6 +10614,13 @@ function cartaoRascunho(aba) {
       ${f.modo === 'csond' ? '' : `<button class="btn ghost" type="button" data-rascfichas="1">Todas as fichas deste ensaio</button>`}
     </div>
     <div id="rascAviso-${aba}"></div>
+    <div class="anexos-bloco">
+      <h3>Foto do rascunho para o analista <span class="tag" data-anexos-conta="${aba}"></span></h3>
+      <p class="hint">Anexe a ficha <b>${f.codigo}</b> preenchida: ela vai junto com o ensaio, e o analista confere o que foi lançado contra o papel.</p>
+      <div class="rasc-botoes"><label class="btn ghost"><input type="file" accept="image/*,application/pdf" multiple data-anexar="${aba}" hidden>📎 Anexar foto do rascunho</label></div>
+      <div data-anexos="${aba}"></div>
+      <div id="anexoAviso-${aba}"></div>
+    </div>
   </div>`;
 }
 
@@ -10613,7 +10641,12 @@ function ligarRascunho() {
       const lista = [...(el.files || [])].slice(0, 4);
       el.value = '';
       if (!lista.length) return;
-      try { lerRascunhoDaAba(aba, await Promise.all(lista.map(prepararArquivo)), blocos); }
+      try {
+        const preparados = await Promise.all(lista.map(prepararArquivo));
+        // a foto lida também fica anexada: o analista confere a leitura contra ela
+        if (typeof anexarPreparados === 'function') anexarPreparados(aba, preparados).catch(() => {});
+        lerRascunhoDaAba(aba, preparados, blocos);
+      }
       catch (e) { avisoRasc(blocos ? `${aba}-${blocos.join('_')}` : aba, `<div class="aviso erro"><span class="ico">✕</span><span>${e.message}</span></div>`); }
     });
   });
@@ -10630,6 +10663,7 @@ function ligarRascunho() {
   const todas = $('btnFichasRascunho');
   if (todas && !todas.dataset.ligado) { todas.dataset.ligado = '1'; todas.addEventListener('click', () => abrirFichasRascunho()); }
   marcarCamposLidos();
+  if (typeof desenharAnexos === 'function') desenharAnexos();
 }
 
 /* ------------------------------------------------------------
@@ -11333,6 +11367,8 @@ const PADRAO = {
   /* Caracterização de sondagem — um conjunto da planilha por ensaio */
   csond: JSON.parse(JSON.stringify(CSOND_PADRAO)),
   naoPlastico: false,
+  /* Fotos do rascunho anexadas em cada aba — { aba: [{ id, nome, tipo, fileId, url… }] } */
+  anexos: {},
   /* Dados da medição — preenchidos uma vez e reaproveitados no cabeçalho de todas as folhas */
   /* Cabeçalho da medição. Nasce em branco: cada laboratório preenche o seu na
      aba Dados, e é isso que sai no topo de todas as folhas. Os campos que têm
@@ -18219,6 +18255,8 @@ function cartaoAprovacao(e, analista) {
     : `<p class="hint ok-completo">✓ Completo — nada pendente.</p>`;
   let botoes = `<button class="btn ghost sm" type="button" data-aprov-abrir="${e.id}">${s === 'aguardando' ? 'Abrir' : 'Continuar'}</button>
     <button class="btn ghost sm" type="button" data-aprov-pdf="${e.id}">Ver PDF</button>`;
+  const nAnexos = typeof anexosDoEnsaio === 'function' ? anexosDoEnsaio(e).length : 0;
+  if (nAnexos) botoes += `<button class="btn ghost sm" type="button" data-aprov-anexos="${e.id}">📎 Rascunhos (${nAnexos})</button>`;
   if (s === 'aguardando') {
     if (analista) {
       botoes += `<button class="btn sm" type="button" data-aprovar="${e.id}"${faltas.length ? ' disabled' : ''}>Aprovar</button>
@@ -18235,7 +18273,7 @@ function cartaoAprovacao(e, analista) {
     <div class="cabeca"><div class="quem"><b>${atr(r.registro || '—')} · ${atr(r.estaca || '—')}</b>
       <span>${atr(r.obra || '—')} · ${linhaInfo}</span></div>
       <div class="marcas"><span class="selo">${M ? M.nome : atr(r.modo || '')}</span><span class="selo claro">${SITUACOES[s]}</span>${seloDePendencia(r)}</div></div>
-    ${dev}${listaFaltas}
+    ${dev}${listaFaltas}${nAnexos ? '' : '<p class="hint">📎 Sem foto do rascunho anexada.</p>'}
     <div class="acoes">${botoes}</div></div>`;
 }
 
@@ -18740,6 +18778,8 @@ async function sincronizarNuvem({ silencioso = false } = {}) {
   if (!silencioso) avisarNuvem('andamento', 'Conversando com a planilha…');
 
   try {
+    // as fotos do rascunho sobem antes: o ensaio vai para a planilha já com o endereço delas
+    if (typeof enviarAnexosPendentes === 'function') await enviarAnexosPendentes().catch(() => 0);
     const lixeira = [...(nuvem.lixeira || [])];
     // o que está na lixeira não sobe, mesmo que ainda esteja em algum canto do histórico
     const enviar = historico
@@ -19008,6 +19048,300 @@ function ligarNuvem() {
   b('btnTestarNuvem', () => { lerCamposNuvem(); testarNuvem(); });
   b('btnSincronizar', () => { lerCamposNuvem(); sincronizarNuvem(); });
   b('btnDesconectar', desconectarNuvem);
+}
+/* ============================================================
+   ANEXOS — a foto do rascunho dentro de cada aba do ensaio
+   O laboratorista anexa a ficha preenchida (ou a foto usada no "Ler rascunho"
+   entra sozinha); o analista abre o ensaio e confere o lançado contra o papel.
+   · No ensaio vai só a descrição do anexo (estado.anexos[aba] = [{id, nome…}]).
+   · A imagem fica no aparelho (IndexedDB) e sobe para o Drive pela planilha
+     (acao 'anexar'), que devolve o endereço. Sem sinal, sobe na próxima
+     sincronização.
+   ============================================================ */
+
+const BANCO_ANEXOS = ESPACO_ARMAZEM + '-anexos';
+const MAX_ANEXOS_ABA = 8;
+let bancoAnexos = null;
+const URLS_ANEXO = {};          // id → objectURL já montado
+const MARCA_ANEXO = {};         // id → impressão do conteúdo: a mesma foto lida de novo não duplica
+let enviandoAnexos = null;      // uma rodada de envio por vez
+
+function abrirBancoAnexos() {
+  if (!bancoAnexos) bancoAnexos = new Promise((ok, falha) => {
+    if (!window.indexedDB) return falha(new Error('Este navegador não guarda arquivos.'));
+    const r = indexedDB.open(BANCO_ANEXOS, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('arq');
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => falha(r.error || new Error('Não consegui abrir o armazenamento de fotos.'));
+  }).catch(e => { bancoAnexos = null; throw e; });
+  return bancoAnexos;
+}
+
+async function bancoAnexo(modo, id, valor) {
+  const db = await abrirBancoAnexos();
+  return new Promise((ok, falha) => {
+    const t = db.transaction('arq', modo === 'ler' ? 'readonly' : 'readwrite');
+    const loja = t.objectStore('arq');
+    const r = modo === 'ler' ? loja.get(id) : modo === 'tirar' ? loja.delete(id) : loja.put(valor, id);
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => falha(r.error);
+  });
+}
+
+function blobDeBase64(dados, tipo) {
+  const bin = atob(dados), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: tipo });
+}
+
+const anexosDaAba = aba => ((estado.anexos || {})[aba] || []);
+const ehPdfAnexo = a => a.tipo === 'application/pdf';
+
+/** Título da aba para o analista: "TLT-R2 · Compactação". */
+function rotuloAbaAnexo(aba) {
+  const f = typeof fichaDaAba === 'function' ? fichaDaAba(aba) : null;
+  return f ? `${f.codigo} · ${f.titulo || f.nome || aba}` : aba;
+}
+
+/** Guarda os arquivos já preparados (prepararArquivo) como anexos da aba. */
+async function anexarPreparados(aba, preparados) {
+  if (!aba || aba === 'pis' || !preparados || !preparados.length) return;
+  estado.anexos = estado.anexos || {};
+  const lista = estado.anexos[aba] = estado.anexos[aba] || [];
+  const m = estado.medicao || {};
+  let n = 0;
+  const marca = p => p.dados.length + ':' + p.dados.slice(2000, 2200);
+  for (const p of preparados) {
+    if (lista.length >= MAX_ANEXOS_ABA) break;
+    if (lista.some(a => MARCA_ANEXO[a.id] === marca(p))) continue;
+    const id = 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    try { await bancoAnexo('gravar', id, { tipo: p.tipo, dados: p.dados }); }
+    catch (e) { avisoAnexos(aba, 'erro', 'Não consegui guardar a foto neste aparelho: ' + e.message); continue; }
+    MARCA_ANEXO[id] = marca(p);
+    lista.push({ id, aba, nome: p.nome || '', tipo: p.tipo, em: new Date().toISOString(),
+                 por: (typeof nuvem === 'object' && nuvem.aparelho) || '', registro: m.registro || '' });
+    n++;
+  }
+  desenharAnexos();
+  if (n) {
+    avisoAnexos(aba, 'ok', `${n} foto(s) anexada(s). <b>Salve o ensaio</b> para o analista receber.`);
+    enviarAnexosPendentes().catch(() => {});
+  } else if (lista.length >= MAX_ANEXOS_ABA) avisoAnexos(aba, 'erro', `No máximo ${MAX_ANEXOS_ABA} anexos por aba.`);
+}
+
+function avisoAnexos(aba, tipo, msg) {
+  const e = $('anexoAviso-' + aba);
+  if (e) e.innerHTML = `<div class="aviso ${tipo}"><span class="ico">${tipo === 'erro' ? '✕' : '✓'}</span><span>${msg}</span></div>`;
+}
+
+function tirarAnexo(aba, id) {
+  const lista = anexosDaAba(aba);
+  const i = lista.findIndex(a => a.id === id);
+  if (i < 0) return;
+  lista.splice(i, 1);
+  // a cópia do aparelho só sai se nenhum ensaio salvo usa a foto
+  const usado = historico.some(e => Object.values(((e.foto || {}).estado || {}).anexos || {}).flat().some(a => a.id === id));
+  if (!usado) bancoAnexo('tirar', id).catch(() => {});
+  desenharAnexos();
+  avisoAnexos(aba, 'ok', 'Anexo removido. Salve o ensaio para valer também na planilha.');
+}
+
+/* ------------------------------------------------------------
+   Imagem do anexo: do aparelho, ou do Drive
+   ------------------------------------------------------------ */
+
+async function urlDoAnexo(a, { baixar = false } = {}) {
+  if (URLS_ANEXO[a.id]) return URLS_ANEXO[a.id];
+  let guardado = null;
+  try { guardado = await bancoAnexo('ler', a.id); } catch (e) {}
+  if (!guardado && baixar && a.fileId && typeof nuvem === 'object' && nuvem.url) {
+    const r = await chamarNuvem({ acao: 'baixarAnexo', fileId: a.fileId }, 60000);
+    guardado = { tipo: r.tipo || a.tipo, dados: r.dados };
+    bancoAnexo('gravar', a.id, guardado).catch(() => {});
+  }
+  if (!guardado) return null;
+  return (URLS_ANEXO[a.id] = URL.createObjectURL(blobDeBase64(guardado.dados, guardado.tipo)));
+}
+
+/** Miniatura do Drive (link público); se o Google não entregar, baixa pela planilha. */
+const miniaturaDrive = a => `https://drive.google.com/thumbnail?id=${encodeURIComponent(a.fileId)}&sz=w1600`;
+
+async function preencherImagem(img, a) {
+  const local = await urlDoAnexo(a).catch(() => null);
+  if (local) { img.src = local; return; }
+  if (!a.fileId) { img.replaceWith(Object.assign(document.createElement('span'), { className: 'anexo-sem', textContent: 'foto em outro aparelho, ainda não enviada' })); return; }
+  img.onerror = async () => {
+    img.onerror = null;
+    const u = await urlDoAnexo(a, { baixar: true }).catch(() => null);
+    if (u) img.src = u; else img.alt = 'não consegui abrir — use "Abrir no Drive"';
+  };
+  img.src = miniaturaDrive(a);
+}
+
+/* ------------------------------------------------------------
+   Desenho dentro de cada aba
+   ------------------------------------------------------------ */
+
+function situacaoAnexo(a) {
+  return a.fileId ? '☁ no Drive' : (typeof nuvem === 'object' && nuvem.url ? '⏳ enviando…' : '📱 só neste aparelho');
+}
+
+function htmlAnexos(aba, lista) {
+  if (!lista.length) return `<p class="hint anexo-vazio">Nenhuma foto anexada. A foto usada no <b>Ler rascunho</b> entra aqui sozinha.</p>`;
+  const reg = (estado.medicao || {}).registro || '';
+  return `<div class="anexos-grade">${lista.map(a => `<figure class="anexo">
+      <button type="button" class="anexo-ver" data-anexo-ver="${atr(aba)}|${atr(a.id)}" title="Ampliar">
+        ${ehPdfAnexo(a) ? '<span class="anexo-pdf">PDF</span>' : `<img alt="rascunho" data-anexo-img="${atr(a.id)}">`}</button>
+      <figcaption>${atr(a.nome || 'foto')}<br><span class="hint">${situacaoAnexo(a)}${a.registro && reg && a.registro !== reg ? ` · <b>registro ${atr(a.registro)}</b>` : ''}</span></figcaption>
+      <button type="button" class="btn ghost sm anexo-tirar" data-anexo-tirar="${atr(aba)}|${atr(a.id)}">Remover</button>
+    </figure>`).join('')}</div>`;
+}
+
+function desenharAnexos() {
+  document.querySelectorAll('[data-anexos]').forEach(el => {
+    const aba = el.dataset.anexos, lista = anexosDaAba(aba);
+    const assinatura = JSON.stringify([lista, (estado.medicao || {}).registro || '', !!(typeof nuvem === 'object' && nuvem.url)]);
+    if (el.dataset.assin === assinatura) return;
+    el.dataset.assin = assinatura;
+    el.innerHTML = htmlAnexos(aba, lista);
+    const conta = document.querySelector(`[data-anexos-conta="${aba}"]`);
+    if (conta) conta.textContent = lista.length ? String(lista.length) : '';
+    el.querySelectorAll('[data-anexo-img]').forEach(img => {
+      const a = lista.find(x => x.id === img.dataset.anexoImg);
+      if (a) preencherImagem(img, a);
+    });
+  });
+  document.querySelectorAll('[data-anexar]').forEach(inp => {
+    if (inp.dataset.ligado) return;
+    inp.dataset.ligado = '1';
+    inp.addEventListener('change', async () => {
+      const aba = inp.dataset.anexar, lista = [...(inp.files || [])].slice(0, MAX_ANEXOS_ABA);
+      inp.value = '';
+      if (!lista.length) return;
+      try { await anexarPreparados(aba, await Promise.all(lista.map(prepararArquivo))); }
+      catch (e) { avisoAnexos(aba, 'erro', e.message); }
+    });
+  });
+}
+
+/* ------------------------------------------------------------
+   Visor — o analista amplia a foto ao lado do lançado
+   ------------------------------------------------------------ */
+
+let visorAnexos = null;    // { lista: [{aba, a}], i }
+
+async function abrirVisorAnexos(lista, i = 0) {
+  if (!lista.length) return;
+  visorAnexos = { lista, i };
+  let v = $('anexoVisor');
+  if (!v) {
+    v = document.createElement('div'); v.id = 'anexoVisor'; v.className = 'anexo-visor';
+    document.body.appendChild(v);
+  }
+  const { aba, a } = lista[i];
+  v.innerHTML = `<div class="anexo-visor-topo"><b>${atr(rotuloAbaAnexo(aba))}</b>
+      <span class="hint">${i + 1} de ${lista.length} · ${atr(a.nome || '')}${a.por ? ' · ' + atr(a.por) : ''}</span>
+      <span class="anexo-visor-botoes">
+        ${lista.length > 1 ? `<button class="btn ghost sm" type="button" data-visor="-1">◀</button><button class="btn ghost sm" type="button" data-visor="1">▶</button>` : ''}
+        ${a.url ? `<a class="btn ghost sm" href="${atr(a.url)}" target="_blank" rel="noopener">Abrir no Drive</a>` : ''}
+        <button class="btn sm" type="button" data-visor="fechar">Fechar</button></span></div>
+    <div class="anexo-visor-corpo" id="anexoVisorCorpo"><p class="hint">Abrindo…</p></div>`;
+  v.hidden = false;
+  const corpo = $('anexoVisorCorpo');
+  if (ehPdfAnexo(a)) {
+    const u = await urlDoAnexo(a, { baixar: true }).catch(() => null);
+    corpo.innerHTML = u ? `<iframe title="PDF" src="${u}"></iframe>`
+      : `<p class="hint">Não consegui abrir o PDF aqui.${a.url ? ' Use <b>Abrir no Drive</b>.' : ''}</p>`;
+    return;
+  }
+  const img = document.createElement('img'); img.alt = 'rascunho';
+  corpo.innerHTML = ''; corpo.appendChild(img);
+  // girar ajuda quando a foto foi tirada deitada
+  img.addEventListener('click', () => { img.dataset.giro = ((+img.dataset.giro || 0) + 90) % 360; img.style.transform = `rotate(${img.dataset.giro}deg)`; });
+  preencherImagem(img, a);
+}
+
+function fecharVisorAnexos() { const v = $('anexoVisor'); if (v) { v.hidden = true; v.innerHTML = ''; } visorAnexos = null; }
+
+/** Todos os anexos de um ensaio salvo, aba por aba, para o cartão da aprovação. */
+function anexosDoEnsaio(e) {
+  const ax = ((e.foto || {}).estado || {}).anexos || {};
+  return Object.keys(ax).flatMap(aba => (ax[aba] || []).map(a => ({ aba, a })));
+}
+
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('[data-anexo-ver],[data-anexo-tirar],[data-visor],[data-aprov-anexos]');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.anexoVer) {
+    const [aba, id] = d.anexoVer.split('|');
+    const lista = anexosDaAba(aba).map(a => ({ aba, a }));
+    return void abrirVisorAnexos(lista, Math.max(0, lista.findIndex(x => x.a.id === id)));
+  }
+  if (d.anexoTirar) {
+    // dois toques: o primeiro pede confirmação no próprio botão
+    if (!d.confirmar) { d.confirmar = '1'; t.textContent = 'Confirmar remoção'; t.classList.add('perigo'); return; }
+    const [aba, id] = d.anexoTirar.split('|');
+    return void tirarAnexo(aba, id);
+  }
+  if (d.aprovAnexos) {
+    const e = historico.find(x => x.id === d.aprovAnexos);
+    if (e) abrirVisorAnexos(anexosDoEnsaio(e), 0);
+    return;
+  }
+  if (d.visor === 'fechar') return void fecharVisorAnexos();
+  if (d.visor && visorAnexos) {
+    const n = visorAnexos.lista.length;
+    abrirVisorAnexos(visorAnexos.lista, (visorAnexos.i + Number(d.visor) + n) % n);
+  }
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && visorAnexos) fecharVisorAnexos(); });
+
+/* ------------------------------------------------------------
+   Envio para o Drive
+   ------------------------------------------------------------ */
+
+/** Troca a descrição do anexo em todo lugar: no ensaio aberto e nos salvos. */
+function gravarDestinoAnexo(id, destino) {
+  const agora = new Date().toISOString();
+  let mexeu = false;
+  Object.values(estado.anexos || {}).forEach(l => (l || []).forEach(a => { if (a.id === id) Object.assign(a, destino); }));
+  historico.forEach(e => {
+    const ax = ((e.foto || {}).estado || {}).anexos;
+    if (!ax) return;
+    let aqui = false;
+    Object.values(ax).forEach(l => (l || []).forEach(a => { if (a.id === id && a.fileId !== destino.fileId) { Object.assign(a, destino); aqui = true; } }));
+    // carimbo novo: a versão com o endereço do Drive vence na planilha
+    if (aqui) { e.atualizadoEm = agora; mexeu = true; }
+  });
+  if (mexeu) gravarHistorico();
+}
+
+/** Sobe o que ainda não foi para o Drive (do ensaio aberto e dos salvos). */
+function enviarAnexosPendentes() {
+  if (enviandoAnexos) return enviandoAnexos;
+  if (typeof nuvem !== 'object' || !nuvem.url) return Promise.resolve(0);
+  enviandoAnexos = (async () => {
+    const vistos = new Set(), fila = [];
+    const juntar = ax => Object.entries(ax || {}).forEach(([aba, l]) => (l || []).forEach(a => {
+      if (!a.fileId && !vistos.has(a.id)) { vistos.add(a.id); fila.push({ aba, a }); }
+    }));
+    juntar(estado.anexos);
+    historico.forEach(e => juntar(((e.foto || {}).estado || {}).anexos));
+    let n = 0;
+    for (const { aba, a } of fila) {
+      let guardado = null;
+      try { guardado = await bancoAnexo('ler', a.id); } catch (e) {}
+      if (!guardado) continue;                // a foto está em outro aparelho
+      const r = await chamarNuvem({ acao: 'anexar', id: a.id, aba, rotulo: rotuloAbaAnexo(aba), nome: a.nome,
+        tipo: guardado.tipo, dados: guardado.dados, registro: a.registro || (estado.medicao || {}).registro || '',
+        aparelho: nuvem.aparelho }, 90000);
+      gravarDestinoAnexo(a.id, { fileId: r.fileId, url: r.url });
+      n++;
+    }
+    return n;
+  })().finally(() => { enviandoAnexos = null; desenharAnexos(); });
+  return enviandoAnexos;
 }
 
 /* ============================================================

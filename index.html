@@ -1321,7 +1321,7 @@ summary:hover{color:var(--text);}
     <div id="mdAvisos" style="margin-top:12px"></div>
   </div>
 
-  <div class="card" data-bloco="solos">
+  <div class="card nao-csond" data-bloco="solos">
     <h2>Obra <span class="tag">Vai no topo de toda folha</span></h2>
     <div class="grid4" id="gpObra"></div>
   </div>
@@ -13307,8 +13307,9 @@ const CAMPOS_MEDICAO = [
 
 /* Na Caracterização de sondagem estes já estão no cartão de identificação da 1ª aba (ficha R1). */
 const DUPLICADOS_CSOND = ['registro', 'furo', 'dataEnsaio', 'obra', 'camada', 'tipoMaterial', 'laboratorista', 'engenheiro', 'proctor'];
-/* Fora da Caracterização de sondagem (pedido de 30/10/2026): executora e supervisora não entram na folha dela. */
-const FORA_CSOND = ['executora', 'supervisora'];
+/* Fora da Caracterização de sondagem (pedidos de 30/10/2026): executora e supervisora não entram na folha
+   dela; rodovia, trecho e sub-trecho também saem — a obra/rodovia já está no cartão "Obra e material". */
+const FORA_CSOND = ['executora', 'supervisora', 'rodovia', 'trecho', 'subTrecho'];
 
 /**
  * A aba Dados saiu do topo: os cartões de dados da família moram na primeira aba

@@ -10496,9 +10496,14 @@ async function lerRascunhoDaAba(aba, arquivos, blocos = null) {
   const chave = blocos ? `${aba}-${blocos.join('_')}` : aba;
   const de_novo = `lerRascunhoDaAba('${aba}', PENDENTES_RASC['${chave}'], ${blocos ? JSON.stringify(blocos) : 'null'})`;
   const aviso = html => avisoRasc(chave, html);
-  if (!nuvem.url) {
-    aviso('<div class="aviso erro"><span class="ico">✕</span><span>Ligue o app à planilha do Drive (Histórico → '
-      + 'Sincronização com o Drive). É ela que faz a leitura.</span></div>');
+  // quem lê: o banco de dados (login) quando ligado; senão, a planilha do Drive
+  const peloBanco = typeof bancoLigado === 'function' && bancoLigado();
+  if (!peloBanco && !nuvem.url) {
+    aviso('<div class="aviso erro"><span class="ico">✕</span><span>'
+      + (typeof CFG_BANCO !== 'undefined' && CFG_BANCO
+        ? 'Entre com seu e-mail e senha (Histórico → Banco de dados). É o banco que faz a leitura.'
+        : 'Ligue o app à planilha do Drive (Histórico → Sincronização com o Drive). É ela que faz a leitura.')
+      + '</span></div>');
     return;
   }
   if (!navigator.onLine) {
@@ -10510,8 +10515,9 @@ async function lerRascunhoDaAba(aba, arquivos, blocos = null) {
   }
   aviso('<div class="aviso agenda"><span class="ico">…</span><span>Lendo o rascunho — leva uns segundos.</span></div>');
   try {
-    const d = await chamarNuvem({ acao: 'lerRascunho', aba, instrucao: instrucaoRascunho(f),
-      arquivos: arquivos.map(a => ({ tipo: a.tipo, dados: a.dados })) }, 150000);
+    const pedido = { acao: 'lerRascunho', aba, instrucao: instrucaoRascunho(f),
+      arquivos: arquivos.map(a => ({ tipo: a.tipo, dados: a.dados })) };
+    const d = peloBanco ? await lerRascunhoPeloBanco(pedido) : await chamarNuvem(pedido, 150000);
     delete PENDENTES_RASC[chave];
     aviso('');
     abrirConferencia(f, d.dados || {}, arquivos, chave);
@@ -19317,7 +19323,7 @@ async function pedidoBanco(caminho, { metodo = 'GET', corpo, cab = {}, login = t
   finally { clearTimeout(relogio); }
   if (!r.ok) {
     let msg = `O banco respondeu ${r.status}.`;
-    try { const j = await r.json(); msg = j.message || j.msg || j.error_description || j.error || msg; } catch (e) {}
+    try { const j = await r.json(); msg = j.message || j.msg || j.error_description || j.erro || j.error || msg; } catch (e) {}
     const erro = new Error(traduzirErroBanco(msg));
     erro.status = r.status;
     throw erro;
@@ -19452,7 +19458,8 @@ async function sincronizarBanco({ silencioso = false } = {}) {
     let marca = banco.marcaServidor || '';
     for (let pagina = 0; pagina < 50; pagina++) {
       const filtro = marca ? `&gravado_em=gt.${encodeURIComponent(marca)}` : '';
-      const linhas = await pedidoBanco(`/rest/v1/ensaios?select=chave,situacao,dados,resumo,aprovacao,aparelho,excluido,atualizado_em,gravado_em${filtro}&order=gravado_em.asc&limit=200`);
+      // só a empresa do login (o dono, que enxerga todas no Painel, não mistura nada no app)
+      const linhas = await pedidoBanco(`/rest/v1/ensaios?select=chave,situacao,dados,resumo,aprovacao,aparelho,excluido,atualizado_em,gravado_em&empresa_id=eq.${banco.perfil.empresa_id}${filtro}&order=gravado_em.asc&limit=200`);
       (linhas || []).forEach(x => {
         banco.noServidor[x.chave] = isoBanco(x.atualizado_em);
         if (x.excluido) apagadosLa.push(x.chave);
@@ -19541,6 +19548,22 @@ async function sincronizarBanco({ silencioso = false } = {}) {
     montarBanco();
     if (bancoDeNovo) { bancoDeNovo = false; setTimeout(() => sincronizarBanco({ silencioso: true }), 0); }
   }
+}
+
+/* ------------------------------------------------------------
+   Leitura de rascunho pela IA — função "ler-rascunho" do Supabase.
+   A chave da IA de cada cliente fica nos segredos do Supabase
+   (ANTHROPIC_KEY_<SIGLA>): nunca no celular nem no GitHub.
+   ------------------------------------------------------------ */
+async function lerRascunhoPeloBanco(pedido) {
+  let r;
+  try { r = await pedidoBanco('/functions/v1/ler-rascunho', { metodo: 'POST', corpo: pedido, tempo: 150000 }); }
+  catch (e) {
+    if (e.status === 404) throw new Error('A leitura por foto ainda não foi instalada no banco (função ler-rascunho).');
+    throw e;
+  }
+  if (!r || !r.ok) throw new Error((r && r.erro) || 'O banco não devolveu a leitura.');
+  return r;
 }
 
 /* ------------------------------------------------------------

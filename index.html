@@ -776,7 +776,8 @@ details.card > summary::-webkit-details-marker{display:none;}
 body.com-entrada{overflow:hidden;}
 .entrada-caixa{width:100%; max-width:380px; background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius); padding:24px 20px; display:flex; flex-direction:column; gap:8px;}
-.entrada-logo{max-width:220px; max-height:80px; object-fit:contain; align-self:center; margin-bottom:6px;}
+.entrada-logo{max-width:240px; max-height:90px; object-fit:contain; align-self:center; margin-bottom:6px;
+  background:var(--mk-branco); padding:8px 14px; border-radius:var(--radius-sm);}   /* placa clara: a logo aparece inteira também no tema escuro */
 .entrada-caixa h1{font-size:19px; margin:0; text-align:center;}
 .entrada-caixa label{font-weight:700; margin-top:6px;}
 .entrada-caixa input{width:100%;}
@@ -1708,6 +1709,11 @@ summary:hover{color:var(--text);}
 
 <!-- ============ ABA 1 · TIPO DE ENSAIO ============ -->
 <section class="aba ativa" id="aba-ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+  <div class="card">
+    <h2>Lançamento</h2>
+    <div id="novoEnsaioAviso"></div>
+    <button class="btn" type="button" data-novo="comecar" style="margin-top:6px">➕ Começar ensaio novo (em branco)</button>
+  </div>
   <div class="card">
     <h2>Família de ensaios <span class="tag">Material</span></h2>
     <div class="familias" id="familias"></div>
@@ -10698,6 +10704,7 @@ function abrirConferencia(f, dados, arquivos, chave = f.aba) {
 function fecharConferencia() { const e = $('rascConferencia'); if (e) e.remove(); CONFERENCIA = null; }
 
 function aplicarConferencia() {
+  if (typeof marcarLancamento === 'function') marcarLancamento();   // o lido entra na tela: é lançamento
   if (!CONFERENCIA) return;
   PIS_LIDOS = {};
   const caixa = $('rascConferencia');
@@ -18034,6 +18041,7 @@ function salvarEnsaio() {
     + `</span></div>`
     + (faltas.length ? '' : `<button class="btn sm" type="button" data-enviar-aprov="${registro.id}" style="margin-top:8px">Enviar para aprovação</button>`);
   sincronizarAoSalvar();
+  ENSAIO_NA_TELA = { origem: 'salvo', registro: (resumo.registro || '') }; LANCAMENTO_SUJO = false;
   if (faltas.length) setTimeout(() => { const e = $('salvoAviso'); if (e) e.innerHTML = ''; }, 9000);
 }
 
@@ -18048,6 +18056,7 @@ function editarEnsaio(id) {
   const e = historico.find(x => x.id === id);
   if (!e) return;
   aplicarEnsaio(e.foto);
+  ENSAIO_NA_TELA = { origem: 'aberto', registro: (e.resumo || {}).registro || '' }; LANCAMENTO_SUJO = false;
   irParaAba(ABA_DO_MODO[estado.modo] || 'ensaio');
 }
 
@@ -18404,6 +18413,74 @@ function semearHistorico() {
   proximoId = historico.length + 1;
   montarHistorico();
 }
+
+/* ------------------------------------------------------------
+   Ensaio novo em branco
+   Ao tocar em "Ensaio" para começar um lançamento, a tela vem limpa:
+   o que estava nela já foi salvo (ou aberto do histórico) e não se perde.
+   Lançamento ainda NÃO salvo nunca é apagado sem a pessoa decidir.
+   Ficam: família e tipo escolhidos, cadastro de equipamentos, calibrações
+   e os padrões guardados no aparelho.
+   ------------------------------------------------------------ */
+let ENSAIO_NA_TELA = null;      // { origem: 'salvo'|'aberto', registro } — o que a tela mostra
+let LANCAMENTO_SUJO = false;    // alguém digitou algo desde o último salvar/abrir/novo
+
+const ABAS_FORA_DO_LANCAMENTO = '#aba-ensaio, #aba-historico, #aba-aprovar, #aba-analise, #aba-equipamentos, #telaEntrada, .rasc-fundo, #anexoVisor';
+['input', 'change'].forEach(tipo => document.addEventListener(tipo, ev => {
+  const t = ev.target;
+  if (t && t.closest && t.closest('section.aba') && !t.closest(ABAS_FORA_DO_LANCAMENTO)) LANCAMENTO_SUJO = true;
+}, true));
+function marcarLancamento() { LANCAMENTO_SUJO = true; }
+
+function novoEnsaio() {
+  const familia = estado.familia, modo = estado.modo, equip = estado.equip;
+  const cfgCs = estado.csond && estado.csond.cfg;
+  estado = JSON.parse(JSON.stringify(PADRAO));
+  Object.assign(estado, { familia, modo, equip });
+  if (cfgCs && typeof novoCsond === 'function') estado.csond = novoCsond(JSON.parse(JSON.stringify(cfgCs)));
+  if (typeof aplicarFichas === 'function') aplicarFichas();          // padrões guardados neste aparelho
+  CAMPOS_SOLTOS.forEach(id => { const e = $(id); if (e) e.value = e.defaultValue || ''; });
+  cpAtivo = 0;
+  montarTudoDoZero();
+  atualizar();
+  ENSAIO_NA_TELA = null; LANCAMENTO_SUJO = false;
+  const s = $('salvoAviso'); if (s) s.innerHTML = '';
+}
+
+function avisoNovoEnsaio(html) { const a = $('novoEnsaioAviso'); if (a) a.innerHTML = html; }
+
+/** Tocou em "Ensaio": tela salva → começa em branco; lançamento não salvo → pergunta. */
+function aoAbrirAbaEnsaio() {
+  if (LANCAMENTO_SUJO) {
+    const reg = (estado.medicao || {}).registro || (ENSAIO_NA_TELA || {}).registro || '';
+    avisoNovoEnsaio(`<div class="aviso"><span class="ico">!</span><span>Há um lançamento <b>não salvo</b> na tela${reg ? ` (registro <b>${atr(reg)}</b>)` : ''}.</span></div>
+      <div class="rasc-botoes" style="margin-top:8px"><button class="btn sm" type="button" data-novo="continuar">Continuar esse lançamento</button>
+      <button class="btn ghost sm perigo" type="button" data-novo="descartar">Descartar e começar em branco</button></div>`);
+    return;
+  }
+  if (ENSAIO_NA_TELA) {
+    const reg = ENSAIO_NA_TELA.registro;
+    novoEnsaio();
+    avisoNovoEnsaio(`<div class="aviso ok"><span class="ico">✓</span><span>Tela em branco para um ensaio novo.${reg
+      ? ` O <b>${atr(reg)}</b> continua salvo — para mexer nele, abra em <b>Aprovar</b> ou <b>Histórico</b>.` : ''}</span></div>`);
+    return;
+  }
+  avisoNovoEnsaio('');
+}
+
+document.addEventListener('click', ev => {
+  const nav = ev.target.closest('nav button[data-aba="ensaio"]');
+  if (nav) { setTimeout(aoAbrirAbaEnsaio, 0); return; }
+  const b = ev.target.closest('[data-novo]');
+  if (!b) return;
+  if (b.dataset.novo === 'continuar') { avisoNovoEnsaio(''); irParaAba(ABA_DO_MODO[estado.modo] || 'ensaio'); return; }
+  if (b.dataset.novo === 'descartar' || b.dataset.novo === 'comecar') {
+    if (b.dataset.novo === 'comecar' && LANCAMENTO_SUJO) return void aoAbrirAbaEnsaio();
+    novoEnsaio();
+    avisoNovoEnsaio('<div class="aviso ok"><span class="ico">✓</span><span>Tela em branco para um ensaio novo.</span></div>');
+  }
+});
+
 /* ============================================================
    APROVAÇÃO — o laboratorista lança, o analista aprova
    O ensaio salvo fica "em andamento" com quem lançou (o Proctor sai num
@@ -19691,6 +19768,8 @@ function montarTelaEntrada() {
     $('entradaCampos').hidden = false;
     $('entradaNomeBloco').hidden = !papel; $('entradaEmailBloco').hidden = !!papel;
     $('entradaSenhaRot').textContent = papel ? `Senha do ${papel}` : 'Senha';
+    // senha do grupo: o navegador não deve trocar pela senha salva do e-mail pessoal
+    const sen = $('entradaSenha'); sen.value = ''; sen.setAttribute('autocomplete', papel ? 'new-password' : 'current-password');
     $('entradaAviso').innerHTML = '';
     const foco = papel ? ($('entradaNome').value ? $('entradaSenha') : $('entradaNome')) : $('entradaEmail');
     setTimeout(() => foco.focus(), 30);

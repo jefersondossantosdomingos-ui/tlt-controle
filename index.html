@@ -10498,7 +10498,8 @@ async function lerRascunhoDaAba(aba, arquivos, blocos = null) {
   const aviso = html => avisoRasc(chave, html);
   // quem lê: o banco de dados (login) quando ligado; senão, a planilha do Drive
   const peloBanco = typeof bancoLigado === 'function' && bancoLigado();
-  if (!peloBanco && !nuvem.url) {
+  const comBanco = typeof CFG_BANCO !== 'undefined' && CFG_BANCO;
+  if (!peloBanco && (comBanco || !nuvem.url)) {
     aviso('<div class="aviso erro"><span class="ico">✕</span><span>'
       + (typeof CFG_BANCO !== 'undefined' && CFG_BANCO
         ? 'Entre com seu e-mail e senha (Histórico → Banco de dados). É o banco que faz a leitura.'
@@ -18820,7 +18821,7 @@ function iniciarNuvem() {
   montarNuvem();
   // com endereço já configurado, uma sincronização silenciosa ao abrir traz o
   // que os outros aparelhos lançaram desde a última vez
-  if (nuvem.url) setTimeout(() => sincronizarNuvem({ silencioso: true }), 1200);
+  if (nuvem.url && !(typeof CFG_BANCO !== 'undefined' && CFG_BANCO)) setTimeout(() => sincronizarNuvem({ silencioso: true }), 1200);
 }
 
 /* ------------------------------------------------------------
@@ -19285,7 +19286,9 @@ function ligarNuvem() {
      o app só mostra; quem garante é o servidor.
    ============================================================ */
 
-const CFG_BANCO = (typeof MARCA === 'object' && MARCA && MARCA.banco && MARCA.banco.url && MARCA.banco.chave) ? MARCA.banco : null;
+// (window.__semBanco: só os testes da planilha do Drive usam, para ligar a planilha de volta)
+const CFG_BANCO = (typeof MARCA === 'object' && MARCA && MARCA.banco && MARCA.banco.url && MARCA.banco.chave
+  && !(typeof window !== 'undefined' && window.__semBanco)) ? MARCA.banco : null;
 const CHAVE_BANCO = ESPACO_ARMAZEM + '.banco.v1';
 const BANCO_PADRAO = { sessao: null, perfil: null, ultimaSincronia: '', marcaServidor: '', noServidor: {}, lixeira: [], ultimoErro: null, falhas: [] };
 let banco = { ...BANCO_PADRAO };
@@ -19453,6 +19456,17 @@ async function sincronizarBanco({ silencioso = false } = {}) {
     // 1 · as fotos primeiro: o ensaio sobe já sabendo onde elas estão
     if (typeof enviarAnexosPendentes === 'function') await enviarAnexosPendentes().catch(() => 0);
 
+    // 1b · uma vez por aparelho: traz o histórico da planilha antiga (só leitura) para
+    //      subir junto ao banco — depois disso a planilha não é mais usada
+    let daPlanilha = 0;
+    if (!banco.importouPlanilha && typeof nuvem === 'object' && nuvem.url) {
+      try {
+        const d = await chamarNuvem({ acao: 'listar' }, 60000);
+        daPlanilha = mesclarDaNuvem((d.ensaios || []).filter(x => !x.excluido).map(daNuvem)).novos;
+        banco.importouPlanilha = true;
+      } catch (e) { /* planilha fora do ar: tenta de novo na próxima */ }
+    }
+
     // 2 · o que mudou no servidor desde a última vez (em páginas de 200)
     const vindos = [], apagadosLa = [];
     let marca = banco.marcaServidor || '';
@@ -19500,6 +19514,8 @@ async function sincronizarBanco({ silencioso = false } = {}) {
       const meu = isoBanco(e.atualizadoEm || e.salvoEm);
       const la = banco.noServidor[chave] || '';
       if (!meu || meu <= la) continue;
+      // ensaio antigo (anterior à aprovação) conta como aprovado: quem sobe é o analista/admin
+      if (!e.situacao && !['analista', 'admin'].includes(banco.perfil.papel)) continue;
       try {
         await pedidoBanco('/rest/v1/ensaios?on_conflict=empresa_id,chave',
           { metodo: 'POST', corpo: paraBanco(e), cab: { Prefer: 'resolution=merge-duplicates,return=minimal' } });
@@ -19533,6 +19549,7 @@ async function sincronizarBanco({ silencioso = false } = {}) {
     if (relatorio.atualizados) partes.push(`${relatorio.atualizados} atualizado(s)`);
     if (apagados) partes.push(`${apagados} apagado(s)`);
     if (devolvidos) partes.push(`${devolvidos} devolvido(s) à lista`);
+    if (daPlanilha) partes.push(`${daPlanilha} trazido(s) da planilha antiga`);
     if (!partes.length) partes.push('nada mudou');
     const recusas = falhas.length ? ` <b>${falhas.length} recusado(s)</b>: ${falhas.slice(0, 3).map(f => `${atr(f.registro)} — ${atr(f.motivo)}`).join('; ')}.` : '';
     if (!silencioso || relatorio.novos || relatorio.atualizados || falhas.length)
@@ -19600,6 +19617,8 @@ function avisarBanco(tipo, msg) {
 }
 
 function montarBanco() {
+  const drive = $('cardNuvem');
+  if (drive && CFG_BANCO) drive.hidden = true;
   const card = $('cardBanco');
   if (!card) return;
   card.hidden = !CFG_BANCO;
@@ -19654,18 +19673,25 @@ document.addEventListener('click', async ev => {
    Ganchos: salvar, apagar, abrir o app, voltar o sinal
    ------------------------------------------------------------ */
 
+/* Com banco de dados, a planilha do Drive sai de cena: o cartão some, nada mais é
+   gravado nela e a leitura por foto e as fotos vão pelo banco. */
 if (CFG_BANCO) {
-  const salvarAntes = sincronizarAoSalvar;
-  sincronizarAoSalvar = function () { salvarAntes(); if (bancoLigado()) sincronizarBanco({ silencioso: true }); };
-  const apagarAntes = marcarParaApagar;
+  sincronizarAoSalvar = function () { if (bancoLigado()) sincronizarBanco({ silencioso: true }); };
   marcarParaApagar = function (chave) {
-    apagarAntes(chave);
     if (!chave || !bancoLigado()) return;
     if (!banco.lixeira.includes(chave)) banco.lixeira.push(chave);
     gravarBanco();
     sincronizarBanco({ silencioso: true });
   };
   window.addEventListener('online', () => { if (bancoLigado()) sincronizarBanco({ silencioso: true }); });
+  // o que os outros lançam chega sozinho: ao voltar para o app e a cada minuto com ele aberto
+  // (só busca o que mudou desde a última vez — é leve)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && bancoLigado()) sincronizarBanco({ silencioso: true });
+  });
+  setInterval(() => {
+    if (bancoLigado() && document.visibilityState === 'visible' && navigator.onLine !== false) sincronizarBanco({ silencioso: true });
+  }, (typeof window !== 'undefined' && window.__intervaloBanco) || 60000);
 }
 
 function iniciarBanco() {
@@ -19820,6 +19846,7 @@ async function preencherImagem(img, a) {
 function situacaoAnexo(a) {
   if (a.caminho) return '☁ no banco';
   if (typeof bancoLigado === 'function' && bancoLigado()) return '⏳ enviando…';
+  if (typeof CFG_BANCO !== 'undefined' && CFG_BANCO) return '📱 só neste aparelho (entre no banco para enviar)';
   return a.fileId ? '☁ no Drive' : (typeof nuvem === 'object' && nuvem.url ? '⏳ enviando…' : '📱 só neste aparelho');
 }
 
@@ -19961,6 +19988,7 @@ function enviarAnexosPendentes() {
   // com o banco de dados ligado, as fotos vão para ele; senão, para o Drive pela planilha
   const peloBanco = typeof bancoLigado === 'function' && bancoLigado();
   if (!peloBanco && (typeof nuvem !== 'object' || !nuvem.url)) return Promise.resolve(0);
+  if (!peloBanco && typeof CFG_BANCO !== 'undefined' && CFG_BANCO) return Promise.resolve(0);   // com banco, o Drive não recebe mais nada
   enviandoAnexos = (async () => {
     const vistos = new Set(), fila = [];
     const juntar = ax => Object.entries(ax || {}).forEach(([aba, l]) => (l || []).forEach(a => {

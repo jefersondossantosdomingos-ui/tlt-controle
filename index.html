@@ -6223,7 +6223,8 @@ function ligarCauq() {
 
 function lerCauq() {
   const c = estado.cauq;
-  const numero = el => { const v = parseFloat(el.value); return Number.isFinite(v) ? v : 0; };
+  // vazio fica vazio (null): ensaio novo em branco não vira uma tela cheia de zeros
+  const numero = el => { const v = parseFloat(el.value); return Number.isFinite(v) ? v : (el.value === '' ? null : 0); };
 
   document.querySelectorAll('[data-cq]').forEach(el => {
     const g = el.dataset.cq, i = +el.dataset.i, f = el.dataset.f;
@@ -6235,7 +6236,7 @@ function lerCauq() {
     else if (g === 'ea')       c.ea.provetas[i][f] = numero(el);
   });
 
-  const campo = (id, alvo, chave) => { const e = $(id); if (e) alvo[chave] = parseFloat(e.value) || 0; };
+  const campo = (id, alvo, chave) => { const e = $(id); if (e) alvo[chave] = e.value === '' ? null : (parseFloat(e.value) || 0); };
   campo('cqTeorProj', c.dosagem, 'teorProjeto');
   campo('cqDensCap',  c.dosagem, 'densidadeCap');
   campo('cqPrensa',   c.dosagem, 'constantePrensa');
@@ -18432,6 +18433,35 @@ const ABAS_FORA_DO_LANCAMENTO = '#aba-ensaio, #aba-historico, #aba-aprovar, #aba
 }, true));
 function marcarLancamento() { LANCAMENTO_SUJO = true; }
 
+/* Os PADRAO de CAUQ, concreto e insumos nascem com um ensaio de exemplo (o das
+   planilhas de origem, que as suítes usam). Para lançar, só os valores de
+   configuração ficam: projeto/dosagem, normas, limites, materiais, idades,
+   diâmetros — as pesagens e leituras vão para em branco. */
+const MANTER_NO_BRANCO = {
+  cauq: [/^dosagem/, /^fonteGmm$/, /^betume\.(metodo|fatorCorrecao)$/, /^rice\.(frascoMaisAgua|temperatura)$/,
+         /^tracao\.\d+\.diametro$/, /^ea\.minimo$/, /\.numero$/],
+  concreto: [/^peca\.(fck|slumpProjeto|diametro|altura|dataMoldagem)$/, /^(unidadeCarga|estatistica|toleranciaSlump)$/,
+             /^corposDeProva\.\d+\.(numero|idade)$/],
+  insumos: [/^materiais/, /(^|\.)(material|materialGraudo|materialMiudo|limite|limiteGraudo|limiteMiudo|minimo|graduacao|truncarCasas)$/,
+            /^finura\.amostras\.\d+\.massaInicial$/, /^abrasao\.corposDeProva\.\d+\.massaInicial$/, /^massaUnitaria\.volume$/,
+            /^durabilidade\.(graudo|miudo)\.\d+\.nome$/],
+};
+function limparExemplos(est = estado) {
+  Object.entries(MANTER_NO_BRANCO).forEach(([bloco, manter]) => {
+    const anda = (o, caminho) => {
+      if (!o || typeof o !== 'object') return;
+      Object.keys(o).forEach(k => {
+        const c = caminho ? `${caminho}.${k}` : String(k);
+        if (manter.some(re => re.test(c))) return;
+        if (typeof o[k] === 'number') o[k] = null;
+        else if (o[k] && typeof o[k] === 'object') anda(o[k], c);
+      });
+    };
+    anda(est[bloco], '');
+  });
+  return est;
+}
+
 function novoEnsaio() {
   const familia = estado.familia, modo = estado.modo, equip = estado.equip;
   const cfgCs = estado.csond && estado.csond.cfg;
@@ -18439,6 +18469,8 @@ function novoEnsaio() {
   Object.assign(estado, { familia, modo, equip });
   if (cfgCs && typeof novoCsond === 'function') estado.csond = novoCsond(JSON.parse(JSON.stringify(cfgCs)));
   if (typeof aplicarFichas === 'function') aplicarFichas();          // padrões guardados neste aparelho
+  // (as suítes antigas contam com o ensaio de exemplo; a val84 pede o branco com __comBranco)
+  if (!navigator.webdriver || window.__comBranco) limparExemplos();
   CAMPOS_SOLTOS.forEach(id => { const e = $(id); if (e) e.value = e.defaultValue || ''; });
   cpAtivo = 0;
   montarTudoDoZero();
@@ -20482,6 +20514,8 @@ document.addEventListener('input', e => {
 /* a ficha guardada entra ANTES de desenhar: os campos já nascem preenchidos,
    em vez de aparecer vazios e piscar no meio da abertura */
 aplicarFichas();
+// uso real: CAUQ, concreto e insumos abrem sem o ensaio de exemplo (as suítes contam com ele)
+if (!navigator.webdriver) limparExemplos();
 
 montarCapsulas();
 montarPeneiras();

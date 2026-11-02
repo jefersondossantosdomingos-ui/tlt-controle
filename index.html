@@ -19428,8 +19428,8 @@ function cartaoAprovacao(e, analista) {
     : `<p class="hint ok-completo">✓ Completo — nada pendente.</p>`;
   let botoes = `<button class="btn ghost sm" type="button" data-aprov-abrir="${e.id}">${s === 'aguardando' ? 'Abrir' : 'Continuar'}</button>
     <button class="btn ghost sm" type="button" data-aprov-pdf="${e.id}">Ver PDF</button>`;
+  // as fotos dos rascunhos se veem dentro de cada aba (Abrir) — sem botão separado aqui
   const nAnexos = typeof anexosDoEnsaio === 'function' ? anexosDoEnsaio(e).length : 0;
-  if (nAnexos) botoes += `<button class="btn ghost sm" type="button" data-aprov-anexos="${e.id}">📎 Rascunhos (${nAnexos})</button>`;
   if (s === 'aguardando') {
     if (analista) {
       botoes += `<button class="btn sm" type="button" data-aprovar="${e.id}"${faltas.length ? ' disabled' : ''}>Aprovar</button>
@@ -19446,7 +19446,7 @@ function cartaoAprovacao(e, analista) {
     <div class="cabeca"><div class="quem"><b>${atr(r.registro || '—')} · ${atr(r.estaca || '—')}</b>
       <span>${atr(r.obra || '—')} · ${linhaInfo}</span></div>
       <div class="marcas"><span class="selo">${M ? M.nome : atr(r.modo || '')}</span><span class="selo claro">${SITUACOES[s]}</span>${seloDePendencia(r)}</div></div>
-    ${dev}${listaFaltas}${nAnexos ? '' : '<p class="hint">📎 Sem foto do rascunho anexada.</p>'}
+    ${dev}${listaFaltas}${nAnexos ? `<p class="hint">📎 ${nAnexos} foto(s) de rascunho — toque em <b>Abrir</b> e veja em cada aba.</p>` : '<p class="hint">📎 Sem foto do rascunho anexada.</p>'}
     <div class="acoes">${botoes}</div></div>`;
 }
 

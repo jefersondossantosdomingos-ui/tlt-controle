@@ -1057,6 +1057,7 @@ section.aba.ativa{display:block; animation:entra .18s ease-out;}
 .folha table.f td.forte{font-weight:bold;}
 /* Marshall 031/2024: registro e estacas são lançados na aba do ensaio, não em Dados */
 body.modo-m031 [data-id-m031]{display:none;}
+body.modo-projcauq [data-id-proj]{display:none;}
 /* Aplicação de C.A.U.Q */
 .ap-faixa{padding:10px 0; border-top:1px dashed var(--border);}
 .ap-faixa:first-of-type{border-top:none; padding-top:0;}
@@ -1327,23 +1328,23 @@ summary:hover{color:var(--text);}
     <span class="chip ok"><span class="dot"></span>Calculando</span>
   </div>
   <nav class="nav-topo">
-<button type="button" class="ativo" data-aba="ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<button type="button" class="ativo" data-aba="ensaio" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
     Ensaio
   </button>
-<button type="button" data-aba="historico" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<button type="button" data-aba="historico" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 13h8"/></svg>
     Histórico
   </button>
-<button type="button" data-aba="aprovar" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<button type="button" data-aba="aprovar" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>
     Aprovar <span class="conta-aprov" hidden></span>
   </button>
-<button type="button" data-aba="analise" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<button type="button" data-aba="analise" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
     Análise
   </button>
-<button type="button" data-aba="equipamentos" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<button type="button" data-aba="equipamentos" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4z"/></svg>
     Dados gerais
   </button>
@@ -1513,14 +1514,38 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ ABA · EQUIPAMENTOS ============ -->
-<section class="aba" id="aba-equipamentos" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba" id="aba-equipamentos" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
   <div class="card">
-    <h2>Dados gerais <span class="tag">Pontos de sondagem e equipamentos</span></h2>
+    <h2>Dados gerais <span class="tag">Projetos, pontos de sondagem e equipamentos</span></h2>
     <p class="hint" style="margin:0 0 14px">
       Cadastre uma vez e escolha nos ensaios. O <b>volume do cilindro</b> é calculado do
       diâmetro e da altura; a <b>tara da cápsula</b> passa a ser puxada daqui em vez de
       digitada em cada ensaio.
     </p>
+
+    <div class="grupo-equip" data-grupo="projcauq">
+      <button type="button" class="cab-grupo" data-eqabre="projcauq">
+        <span class="seta" aria-hidden="true">›</span>
+        <span class="nome">Projetos de CAUQ (Marshall 031/2024)</span>
+        <span class="conta" id="conta-projcauq"></span>
+      </button>
+      <div class="corpo-grupo">
+        <p class="hint" style="margin:0 0 10px">O projeto de mistura da obra (aba INSERIR INFORMAÇÕES da planilha): dados gerais,
+          parâmetros, composição e granulometria de projeto. Cadastre uma vez; no <b>Marshall 031/2024</b>, escolher o projeto
+          na Identificação do ensaio traz tudo. Vai para os outros aparelhos pelo banco.</p>
+        <div id="avisoProjCauq"></div>
+        <div class="tabwrap">
+          <table class="t-form">
+            <thead><tr><th>Projeto / traço</th><th>Obra</th><th>Faixa</th><th>Teor</th><th>Gsb</th><th>Atualizado</th><th></th></tr></thead>
+            <tbody id="tbProjCauq"></tbody>
+          </table>
+        </div>
+        <div class="rasc-botoes" style="margin-top:10px">
+          <button class="btn" type="button" data-pcnovo="1">+ Novo projeto de CAUQ</button>
+          <button class="btn ghost" type="button" data-pcfichas="1">Imprimir fichas do projeto (3 folhas)</button>
+        </div>
+      </div>
+    </div>
 
     <div class="grupo-equip" data-grupo="pis">
       <button type="button" class="cab-grupo" data-eqabre="pis">
@@ -1529,7 +1554,8 @@ summary:hover{color:var(--text);}
         <span class="conta" id="conta-pis"></span>
       </button>
       <div class="corpo-grupo">
-    <p class="hint" style="margin:0 0 10px">Cadastre os PIs da obra uma vez. Na <b>Caracterização de sondagem</b>, escolher o PI preenche rodovia, pista, sentido, km, latitude e longitude.</p>
+    <p class="hint" style="margin:0 0 10px">Cadastre os PIs da obra uma vez. Na <b>Caracterização de sondagem</b>, escolher o PI preenche rodovia, pista, sentido, km, latitude e longitude.
+      Com o banco de dados ligado, os PIs vão para <b>toda a equipe</b> logo depois de cadastrados, importados ou corrigidos (só o gestor apaga).</p>
         <div class="busca-equip">
           <input type="search" id="busca-pis" data-eqbusca="pis" placeholder="Procurar PI pelo nº" autocomplete="off">
         </div>
@@ -1652,12 +1678,12 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ ABA · APROVAR ============ -->
-<section class="aba" id="aba-aprovar" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba" id="aba-aprovar" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
   <div id="aprovarConteudo"></div>
 </section>
 
 <!-- ============ ABA · ANÁLISE ============ -->
-<section class="aba" id="aba-analise" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba" id="aba-analise" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
 
   <div class="card">
     <h2>Recorte da análise <span class="tag">Vale para tudo nesta aba</span></h2>
@@ -1708,7 +1734,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ ABA 1 · TIPO DE ENSAIO ============ -->
-<section class="aba ativa" id="aba-ensaio" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba ativa" id="aba-ensaio" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
   <div class="card">
     <h2>Lançamento</h2>
     <div id="novoEnsaioAviso"></div>
@@ -1757,7 +1783,7 @@ summary:hover{color:var(--text);}
 </section>
 
 <!-- ============ ABA · HISTÓRICO ============ -->
-<section class="aba" id="aba-historico" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba" id="aba-historico" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
   <div class="card" id="cardBanco" hidden>
     <h2>Banco de dados <span class="tag" id="bancoEstado">—</span></h2>
     <div id="bancoCorpo"></div>
@@ -2566,8 +2592,10 @@ summary:hover{color:var(--text);}
 <section class="aba" id="aba-cssed" data-fam="solos" data-modos="csond"><div id="csSed"></div><div data-pdfslot="cssed"></div></section>
 <section class="aba" id="aba-csmct" data-fam="solos" data-modos="csond"><div id="csMct"></div><div data-pdfslot="csmct"></div></section>
 <section class="aba" id="aba-csmr" data-fam="solos" data-modos="csond"><div id="csMr"></div><div data-pdfslot="csmr"></div></section>
-<section class="aba" id="aba-m31proj" data-fam="cauq" data-modos="m031"><div data-rascslot="m31proj"></div><div data-dadosslot="m031"></div><div id="m31Projeto"></div></section>
-<section class="aba" id="aba-m31granul" data-fam="cauq" data-modos="m031"><div data-rascslot="m31granul"></div><div id="m31Granul"></div></section>
+<section class="aba" id="aba-pcdados" data-fam="cauq" data-modos="projcauq"><div data-rascslot="pcdados"></div><div data-dadosslot="projcauq"></div><div id="pcDados"></div></section>
+<section class="aba" id="aba-pcparam" data-fam="cauq" data-modos="projcauq"><div data-rascslot="pcparam"></div><div id="pcParam"></div></section>
+<section class="aba" id="aba-pcgranul" data-fam="cauq" data-modos="projcauq"><div data-rascslot="pcgranul"></div><div id="pcGranul"></div></section>
+<section class="aba" id="aba-m31granul" data-fam="cauq" data-modos="m031"><div data-rascslot="m31granul"></div><div id="m31Granul"></div><div data-dadosslot="m031"></div></section>
 <section class="aba" id="aba-m31rice" data-fam="cauq" data-modos="m031"><div data-rascslot="m31rice"></div><div id="m31Rice"></div></section>
 <section class="aba" id="aba-m31marshall" data-fam="cauq" data-modos="m031"><div data-rascslot="m31marshall"></div><div id="m31Marshall"></div></section>
 <section class="aba" id="aba-m31rtd" data-fam="cauq" data-modos="m031"><div data-rascslot="m31rtd"></div><div id="m31Rtd"></div></section>
@@ -2974,7 +3002,7 @@ summary:hover{color:var(--text);}
   </div>
 </section>
 
-<section class="aba" id="aba-resultado" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+<section class="aba" id="aba-resultado" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
 
   <div class="card" data-fam="insumos">
     <h2>Caracterização dos insumos <span class="tag" id="insVeredito">—</span></h2>
@@ -3208,13 +3236,21 @@ summary:hover{color:var(--text);}
     <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>
     MR
   </button>
-  <button type="button" data-aba="m31proj" data-fam="cauq" data-modos="m031">
+  <button type="button" data-aba="pcdados" data-fam="cauq" data-modos="projcauq">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
-    Projeto
+    Dados gerais
+  </button>
+  <button type="button" data-aba="pcparam" data-fam="cauq" data-modos="projcauq">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>
+    Parâm. e comp.
+  </button>
+  <button type="button" data-aba="pcgranul" data-fam="cauq" data-modos="projcauq">
+    <svg viewBox="0 0 24 24"><path d="M3 20c4-1 6-6 9-10s5-6 9-6"/><path d="M3 4v16h18"/></svg>
+    Granul. projeto
   </button>
   <button type="button" data-aba="m31granul" data-fam="cauq" data-modos="m031">
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-    Granul.
+    Teor e granulometria
   </button>
   <button type="button" data-aba="m31rice" data-fam="cauq" data-modos="m031">
     <svg viewBox="0 0 24 24"><path d="M6 2h12"/><path d="M9 2v6l-4 8a3 3 0 0 0 3 4h8a3 3 0 0 0 3-4l-4-8V2"/></svg>
@@ -3276,7 +3312,7 @@ summary:hover{color:var(--text);}
     <svg viewBox="0 0 24 24"><path d="M8 3h8v5l-3 4v9h-2v-9L8 8z"/><path d="M9 16h6"/></svg>
     Eq. areia
   </button>
-  <button type="button" data-aba="resultado" data-modos="simples caracterizacao completo csond marshall m031 sondagem aplicacao concreto insumos">
+  <button type="button" data-aba="resultado" data-modos="simples caracterizacao completo csond marshall projcauq m031 sondagem aplicacao concreto insumos">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
     Resumo
   </button>
@@ -8025,6 +8061,8 @@ const britasM031 = () => (ENSAIO_M031_MARCA.britas
 
 const M031_PADRAO = {
   projeto: projetoM031Padrao(),
+  // de qual Projeto de CAUQ salvo veio a cópia acima: { chave, nome, salvoEm }
+  projetoOrigem: null,
   betume: { pesoInicial:null, pesoFinal:null, fatorCalibracao: ENSAIO_M031_MARCA.fatorCalibracao ?? 1 },
   // retido ACUMULADO em cada peneira, como a MATRIZ MARSHALL DIÁRIO (ensaios antigos: retido na peneira)
   granul: { retidos: vazios12(), acumulado: true },
@@ -8114,10 +8152,10 @@ function ligarM031() {
       atualizar();
     });
   });
-  const b = $('btnGuardarProjetoM31');
-  if (b && !b.dataset.ligado) {
-    b.dataset.ligado = '1';
-    b.addEventListener('click', guardarProjetoM031);
+  const sp = $('m31SelProjeto');
+  if (sp && !sp.dataset.ligado) {
+    sp.dataset.ligado = '1';
+    sp.addEventListener('change', () => { if (sp.value) usarProjetoCauq(sp.value); });
   }
 }
 
@@ -8137,6 +8175,126 @@ function guardarProjetoM031() {
     : `<div class="aviso erro"><span class="ico">✕</span><span>Não consegui guardar neste aparelho.</span></div>`;
 }
 
+/* ------------------------------------------------------------
+   Projetos de CAUQ (modo projcauq) — são ensaios salvos; o Marshall 031 escolhe um
+   ------------------------------------------------------------ */
+
+/** Os projetos salvos (os de qualquer aparelho que chegaram pelo banco/planilha), o mais novo primeiro. */
+function projetosCauq() {
+  return (typeof historico !== 'undefined' ? historico : [])
+    .filter(e => e && e.resumo && e.resumo.modo === 'projcauq' && !e.excluido && e.foto && e.foto.estado)
+    .sort((a, b) => String(b.atualizadoEm || b.salvoEm || '').localeCompare(String(a.atualizadoEm || a.salvoEm || '')));
+}
+
+function opcoesProjetoCauq() {
+  const lista = projetosCauq(), atual = (estado.m031.projetoOrigem || {}).chave;
+  if (!lista.length) return '<option value="">Nenhum projeto cadastrado — crie em Dados gerais → Projetos de CAUQ</option>';
+  const achou = lista.some(e => (e.chaveNuvem || e.id) === atual);
+  return (achou ? '' : `<option value="">${atual ? atr((estado.m031.projetoOrigem || {}).nome || 'projeto deste ensaio') + ' (cópia guardada no ensaio)' : 'Escolha o projeto…'}</option>`)
+    + lista.map(e => { const k = e.chaveNuvem || e.id, r = e.resumo;
+      return `<option value="${atr(k)}"${k === atual ? ' selected' : ''}>${atr(r.registro)}${r.obra ? ' · ' + atr(r.obra) : ''}${r.material ? ' · ' + atr(r.material) : ''}</option>`; }).join('');
+}
+
+/** Campos do cabeçalho que vêm do projeto (o registro, a data e o local são do ensaio). */
+const CAB_DO_PROJETO = ['obra', 'cliente', 'trecho', 'subTrecho', 'servico', 'material', 'usina', 'numeroMedicao', 'engenheiro'];
+
+/** Copia o projeto escolhido para este ensaio: projeto de mistura e cabeçalho da obra. */
+function usarProjetoCauq(chave) {
+  const e = projetosCauq().find(x => (x.chaveNuvem || x.id) === chave);
+  if (!e) return false;
+  const est = JSON.parse(JSON.stringify(e.foto.estado));
+  if (est.m031 && est.m031.projeto) estado.m031.projeto = mesclarComPadrao(projetoM031Padrao(), est.m031.projeto);
+  const mc = est.medicaoCauq || {};
+  CAB_DO_PROJETO.forEach(k => { if (mc[k] !== undefined) estado.medicaoCauq[k] = mc[k]; });
+  estado.m031.projetoOrigem = { chave, nome: e.resumo.registro, salvoEm: e.atualizadoEm || e.salvoEm || '' };
+  montarM031();
+  if (typeof montarDadosCauq === 'function') montarDadosCauq();
+  atualizar();
+  return true;
+}
+
+/* ---- cadastro em Dados gerais: lista, novo, editar, apagar ---- */
+let VOLTA_PROJ = null;          // o que estava na tela antes de abrir o projeto (volta igual ao sair)
+let APAGANDO_PROJ = null;
+
+function montarListaProjetosCauq() {
+  const tb = $('tbProjCauq');
+  if (!tb) return;
+  const lista = projetosCauq();
+  const c = $('conta-projcauq'); if (c) c.textContent = lista.length ? String(lista.length) : '';
+  tb.innerHTML = lista.length ? lista.map(e => {
+    const r = e.resumo, k = atr(e.chaveNuvem || e.id);
+    return `<tr><td class="cap" data-rot="Projeto">${atr(r.registro)}</td><td data-rot="Obra">${atr(r.obra || '')}</td>
+      <td data-rot="Faixa">${atr(r.estaca || '')}</td><td class="num" data-rot="Teor">${vM31(r.teorProjeto, 2)}</td>
+      <td class="num" data-rot="Gsb">${vM31(r.gsbProjeto, 3)}</td><td data-rot="Atualizado">${atr(String(e.atualizadoEm || e.salvoEm || '').slice(0, 10).split('-').reverse().join('/'))}</td>
+      <td data-rot="">${APAGANDO_PROJ === k
+        ? `<button class="btn ghost sm perigo" type="button" data-pcapagarok="${k}">Confirmar</button> <button class="btn ghost sm" type="button" data-pcapagarnao="1">Cancelar</button>`
+        : `<button class="btn ghost sm" type="button" data-pceditar="${k}">Abrir</button> <button class="btn ghost sm perigo" type="button" data-pcapagar="${k}">Apagar</button>`}</td></tr>`;
+  }).join('') : '<tr><td colspan="7" class="hint">Nenhum projeto cadastrado.</td></tr>';
+}
+
+/** Abre o projeto (ou um novo, em branco) nas três abas do Projeto de CAUQ, guardando o que estava na tela. */
+function abrirProjetoCauq(chave = null) {
+  if (estado.modo !== 'projcauq') VOLTA_PROJ = fotografarEnsaio();
+  const e = chave ? projetosCauq().find(x => (x.chaveNuvem || x.id) === chave) : null;
+  if (e) aplicarEnsaio(e.foto);
+  else {
+    trocarFamilia('cauq');
+    estado.m031.projeto = copiaM31(PROJETO_M031_VAZIO);
+    ['obra', 'cliente', 'trecho', 'subTrecho', 'servico', 'material', 'usina', 'numeroMedicao', 'observacoes']
+      .forEach(k => { estado.medicaoCauq[k] = ''; });
+    montarTudoDoZero();
+  }
+  trocarModo('projcauq');
+  irParaAba('pcdados');
+}
+
+function voltarDoProjetoCauq() {
+  if (VOLTA_PROJ) aplicarEnsaio(VOLTA_PROJ);
+  else { trocarModo('m031'); }
+  if (estado.modo === 'projcauq') trocarModo('m031');
+  VOLTA_PROJ = null;
+  irParaAba('equipamentos');
+  if (typeof gruposAbertos !== 'undefined') { gruposAbertos.add('projcauq'); if (typeof aplicarGruposEquip === 'function') aplicarGruposEquip(); }
+  montarListaProjetosCauq();
+}
+
+function salvarProjetoCauq() {
+  const nome = String(estado.m031.projeto.identificacao.projeto || '').trim();
+  if (!nome) {
+    document.querySelectorAll('[data-pcaviso]').forEach(d => { d.innerHTML = '<div class="aviso erro"><span class="ico">✕</span><span>'
+      + 'Preencha <b>Projeto / traço</b> (aba Dados gerais): é o nome que aparece para escolher no Marshall 031/2024.</span></div>'; });
+    irParaAba('pcdados');
+    return false;
+  }
+  salvarEnsaio();
+  voltarDoProjetoCauq();
+  const a = $('avisoProjCauq');
+  if (a) a.innerHTML = `<div class="aviso ok"><span class="ico">✓</span><span>Projeto <b>${atr(nome)}</b> salvo. Escolha-o na Identificação do ensaio do Marshall 031/2024.</span></div>`;
+  return true;
+}
+
+function apagarProjetoCauq(chave) {
+  const e = projetosCauq().find(x => (x.chaveNuvem || x.id) === chave);
+  APAGANDO_PROJ = null;
+  if (e) excluirEnsaio(e.id);
+  montarListaProjetosCauq();
+}
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-pcnovo],[data-pceditar],[data-pcapagar],[data-pcapagarok],[data-pcapagarnao],[data-pcsalvar],[data-pcvoltar],[data-pcfichas]');
+  if (!b) return;
+  const d = b.dataset;
+  if (d.pcnovo) abrirProjetoCauq(null);
+  else if (d.pceditar) abrirProjetoCauq(d.pceditar);
+  else if (d.pcapagar) { APAGANDO_PROJ = d.pcapagar; montarListaProjetosCauq(); }
+  else if (d.pcapagarnao) { APAGANDO_PROJ = null; montarListaProjetosCauq(); }
+  else if (d.pcapagarok) apagarProjetoCauq(d.pcapagarok);
+  else if (d.pcsalvar) salvarProjetoCauq();
+  else if (d.pcvoltar) voltarDoProjetoCauq();
+  else if (d.pcfichas && typeof abrirFichasRascunho === 'function') abrirFichasRascunho(fichasDoModo('projcauq'));
+});
+
 /** Chamado por aplicarFichas() na abertura. */
 function aplicarProjetoM031Guardado(tudo) {
   const f = tudo[FICHA_M031];
@@ -8152,7 +8310,7 @@ const mmTxt = mm => fmt(mm, mm < 1 ? 3 : mm < 10 ? 2 : 1);
 
 function montarM031() {
   const s = estado.m031;
-  if (!$('m31Projeto')) return;
+  if (!$('m31Granul')) return;
   const p = s.projeto;
 
   /* ---------- PROJETO ---------- */
@@ -8171,13 +8329,22 @@ function montarM031() {
     ['tempUsinagem', 'Temp. usinagem (°C)', '1'], ['tempCompactacao', 'Temp. compactação (°C)', '1'],
     ['golpes', 'Nº de golpes', '1'], ['tnm', 'TNM da faixa (mm)', '0.1'],
   ];
-  $('m31Projeto').innerHTML = `
+  const barraPc = n => `<div class="card destaque-proj">
+      <h2>Projeto de CAUQ <span class="tag">${n} de 3 · Dados gerais</span></h2>
+      <p class="hint" style="margin:0 0 10px">Preencha (ou leia pelo rascunho) as três abas: Dados gerais, Parâmetros e composição, Granulometria de projeto.</p>
+      <div class="rasc-botoes"><button class="btn" type="button" data-pcsalvar="1">Salvar projeto</button>
+        <button class="btn ghost" type="button" data-pcvoltar="1">Voltar sem salvar</button></div>
+      <div data-pcaviso="1" style="margin-top:8px"></div></div>`;
+  if ($('pcDados')) $('pcDados').innerHTML = barraPc(1) + `
     <div class="card">
       <h2>Identificação do projeto <span class="tag">Projeto de mistura</span></h2>
       <div class="grid4">${ident.map(([k, rot, larg]) =>
         `<div style="grid-column:span ${larg}"><label>${rot}</label>${tM31('projeto.identificacao.' + k)}</div>`).join('')}
       </div>
-    </div>
+      <p class="hint">O nome em <b>Projeto / traço</b> é o que aparece para escolher no Marshall 031/2024.
+        Preencha as três abas e toque em <b>Salvar projeto</b>.</p>
+    </div>`;
+  if ($('pcParam')) $('pcParam').innerHTML = barraPc(2) + `
     <div class="card">
       <h2>Parâmetros de projeto <span class="tag">DNIT 031/2024 · Tabelas 4 e 5</span></h2>
       <div class="grid4">${param.map(([k, rot, passo]) =>
@@ -8206,7 +8373,8 @@ function montarM031() {
           <td class="forte" data-rot="Total agregados" id="m31SomaAgreg">—</td>
           <td class="forte" data-rot="Total mistura" id="m31SomaMist">—</td><td></td><td></td></tr>
         </tbody></table></div>
-    </div>
+    </div>`;
+  if ($('pcGranul')) $('pcGranul').innerHTML = barraPc(3) + `
     <div class="card">
       <h2>Granulometria de projeto e faixa de trabalho <span class="tag">% passante</span></h2>
       <p class="hint" style="margin:0 0 14px">Faixa de trabalho = curva de projeto ± tolerância
@@ -8226,14 +8394,20 @@ function montarM031() {
           <td data-rot="Faixa mín.">${nM31(`projeto.limites.${li}.0`, '1')}</td>
           <td data-rot="Faixa máx.">${nM31(`projeto.limites.${li}.1`, '1')}</td>
         </tr>`).join('')}</tbody></table></div>
+      <div class="legenda" style="margin-top:12px">
+        <span><i style="background:var(--accent);opacity:.5"></i>Faixa da norma</span>
+        <span><i style="background:var(--s2)"></i>Faixa de trabalho</span>
+        <span><i style="background:var(--s1)"></i>Curva de projeto</span>
+      </div>
+      <svg id="chartProjCauq" width="100%" height="280" role="img" aria-label="Curva de projeto e faixa de trabalho"></svg>
     </div>
     <div class="card">
-      <h2>Guardar este projeto</h2>
-      <p class="hint" style="margin:0 0 14px">O projeto é da obra, não do ensaio. Guardado aqui,
-        todo Marshall 031/2024 novo abre com ele neste aparelho — o ensaio salvo leva uma cópia
-        do projeto do dia, e mudar o projeto depois não mexe nos ensaios já salvos.</p>
-      <button class="btn" type="button" id="btnGuardarProjetoM31">Guardar projeto</button>
-      <div id="m31ProjetoAviso" style="margin-top:12px"></div>
+      <h2>Salvar o projeto</h2>
+      <p class="hint" style="margin:0 0 10px">O projeto fica em <b>Dados gerais → Projetos de CAUQ</b> e na lista da
+        <b>Identificação do ensaio</b> do Marshall 031/2024 — e chega aos outros aparelhos pelo banco.
+        O ensaio leva uma cópia: mudar o projeto depois não mexe nos ensaios já salvos.</p>
+      <div class="rasc-botoes"><button class="btn" type="button" data-pcsalvar="1">Salvar projeto</button></div>
+      <div data-pcaviso="1" style="margin-top:8px"></div>
     </div>`;
 
   /* ---------- TEOR E GRANULOMETRIA ---------- */
@@ -8245,6 +8419,8 @@ function montarM031() {
     <div class="card">
       <h2>Identificação do ensaio <span class="tag">Muda a cada ensaio</span></h2>
       <div class="grid4">
+        <div style="grid-column:span 4"><label>Projeto de CAUQ</label>
+          <select id="m31SelProjeto">${opcoesProjetoCauq()}</select></div>
         ${idCampo('registro', 'Nº do registro <span class="obrig">obrigatório</span>')}
         ${idCampo('dataEnsaio', 'Data', 'date')}
         ${idCampo('lado', 'Posição', 'text', 'LE, LD ou EIXO')}
@@ -8252,8 +8428,9 @@ function montarM031() {
         ${idCampo('estacaFinal', 'Estaca final', 'text', 'Ex.: 150+0')}
         ${idCampo('cota', 'Cota')}
       </div>
-      <p class="hint">A obra, o cliente, a usina e a medição ficam na 1ª aba (Projeto) e valem para
-        todos os ensaios; aqui entra só o que identifica este.</p>
+      <p class="hint" id="m31ProjInfo"></p>
+      <p class="hint">A obra, o cliente, a usina, a medição e todo o projeto de mistura vêm do projeto escolhido
+        (cadastrado em <b>Dados gerais → Projetos de CAUQ</b>); aqui entra só o que identifica este ensaio.</p>
     </div>
     <div class="card">
       <h2>Teor de CAP <span class="tag">DNER-ME 053 · DNIT 158-ME</span></h2>
@@ -8576,7 +8753,7 @@ const seloM31 = ok => ok === null || ok === undefined ? ''
   : ok ? '<span class="badge ok">✓</span>' : '<span class="badge fail">✕ fora</span>';
 
 function desenharTelaM031(r) {
-  if (!$('m31Projeto')) return;
+  if (!$('m31Granul')) return;
   const par = estado.m031.projeto.parametros;
 
   // projeto
@@ -8592,6 +8769,17 @@ function desenharTelaM031(r) {
   });
   putM31('m31TeorFaixa', Number.isFinite(par.teorProjeto)
     ? `Teor de controle: <b>${fmt(r.projeto.teorMin, 2)} a ${fmt(r.projeto.teorMax, 2)} %</b> (projeto ± 0,3).` : '');
+
+  // projeto escolhido (a lista muda quando um projeto é salvo ou chega pelo banco)
+  const sp = $('m31SelProjeto');
+  if (sp && document.activeElement !== sp) sp.innerHTML = opcoesProjetoCauq();
+  const po = estado.m031.projetoOrigem, idp = estado.m031.projeto.identificacao;
+  putM31('m31ProjInfo', Number.isFinite(par.teorProjeto)
+    ? `<span class="badge ok">✓ projeto</span> ${atr(po ? po.nome : (idp.projeto || 'projeto deste ensaio'))} · teor ${fmt(par.teorProjeto, 2)} % · `
+      + `Gsb ${vM31(par.gsbProjeto, 3)} · Rice ${vM31(par.riceProjeto, 3)} · ${atr(idp.faixa || '')}`
+    : '<span class="badge fail">sem projeto</span> Escolha o projeto: sem ele não há faixa de trabalho, teor de projeto nem Gsb.');
+  const svgP = $('chartProjCauq');
+  if (svgP && svgP.getClientRects().length) desenharCurvaCauq(curvaProjetoCauq(r), svgP);
 
   // teor e granulometria
   putM31('m31Teor', vM31(r.teor, 2, '%'));
@@ -8715,6 +8903,14 @@ function desenharTelaM031(r) {
 
   const svg = $('chartM031');
   if (svg && svg.getClientRects().length) desenharCurvaCauq(curvaM031(r), svg);
+}
+
+/** Só a curva de projeto e as faixas (Projeto de CAUQ). */
+function curvaProjetoCauq(r) {
+  return {
+    composicao: { linhas: r.projeto.linhas.map(l => ({ ...l, projeto: l.combinado })) },
+    granul: { linhas: r.projeto.linhas.map(l => ({ ...l, percentualQuePassa: null })) },
+  };
 }
 
 /** A curva do CAUQ serve aqui: só muda o nome dos campos. */
@@ -8929,6 +9125,64 @@ function folhaM031(pacote, pagina = 1, total = 1) {
     const html = folha({ ...f, pagina: pagina + i, total });
     return f.compacta ? html.replace('<div class="folha">', '<div class="folha m31-justa">') : html;
   });
+}
+
+/* ------------------------------------------------------------
+   Folha do Projeto de CAUQ — a aba INSERIR INFORMAÇÕES numa página
+   ------------------------------------------------------------ */
+function folhaProjetoCauq(pacote, pagina = 1, total = 1) {
+  const r = pacote && pacote.projcauq;
+  if (!r) return [];
+  if (!pagina) return [''];
+  const p = estado.m031.projeto, par = p.parametros, id = p.identificacao;
+  const n = (v, d) => num(v, d);
+  const vamMin = Number.isFinite(par.vaziosProjeto) ? MARSHALL31.vamMinimo(par.tnm, par.vaziosProjeto) : null;
+  const lim = (v, a, b) => !Number.isFinite(v) ? '<td>—</td>'
+    : `<td class="${(a === null || v >= a - 1e-9) && (b === null || v <= b + 1e-9) ? 'ace' : 'rej'}">${(a === null || v >= a - 1e-9) && (b === null || v <= b + 1e-9) ? 'ATENDE' : 'NÃO ATENDE'}</td>`;
+  const lp = (rot, k, d, esp = '', a = null, b = null, julga = false) => `<tr><td class="rot">${rot}</td>
+    <td class="num forte">${n(par[k], d)}</td><td class="num">${esp}</td>${julga ? lim(par[k], a, b) : '<td></td>'}</tr>`;
+  const tabPar = lp('Teor ótimo de CAP (%)', 'teorProjeto', 2, Number.isFinite(par.teorProjeto) ? `${n(par.teorProjeto - 0.3, 2)} a ${n(par.teorProjeto + 0.3, 2)}` : '')
+    + lp('Massa específica do CAP (g/cm³)', 'densidadeCap', 3) + lp('Dmm — Rice (g/cm³)', 'riceProjeto', 3)
+    + lp('Densidade aparente Gmb (g/cm³)', 'gmbProjeto', 3) + lp('Volume de vazios (%)', 'vaziosProjeto', 2, '3 a 5', 3, 5, true)
+    + lp('VAM (%)', 'vamProjeto', 2, vamMin === null ? '' : `≥ ${n(vamMin, 2)}`, vamMin, null, vamMin !== null)
+    + lp('RBV (%)', 'rbvProjeto', 1, '65 a 75', 65, 75, true) + lp('Estabilidade (kgf)', 'estabilidadeProjeto', 0, '≥ 500', 500, null, true)
+    + lp('Fluência (mm)', 'fluenciaProjeto', 2, 'informativo') + lp('Relação fíler/asfalto', 'filerAsfaltoProjeto', 2, '0,6 a 1,6', 0.6, 1.6, true)
+    + lp('RT a 25 °C (MPa)', 'rtProjeto', 2, '≥ 0,65', 0.65, null, true) + lp('Gsb combinado (g/cm³)', 'gsbProjeto', 3)
+    + lp('Temperatura de usinagem (°C)', 'tempUsinagem', 1) + lp('Temperatura de compactação (°C)', 'tempCompactacao', 1)
+    + lp('Nº de golpes', 'golpes', 0);
+  const comp = p.materiais.map((m, i) => `<tr><td class="rot">${atr(m.nome || '')}</td><td>${atr(m.procedencia || '')}</td>
+      <td class="num">${n(m.percentual, 1)}</td><td class="num">${n(r.projeto.naMistura[i], 2)}</td>
+      <td class="num">${n(m.densidadeReal, 3)}</td><td class="num">${n(m.densidadeAparente, 3)}</td></tr>`).join('')
+    + `<tr><td class="rot">${atr(p.ligante.nome || 'CAP')}</td><td>${atr(p.ligante.procedencia || '')}</td><td class="num">—</td>
+      <td class="num">${n(par.teorProjeto, 2)}</td><td></td><td></td></tr>
+      <tr><td class="rot forte">Total</td><td></td><td class="num forte">${n(r.projeto.soma, 1)}</td>
+      <td class="num forte">${n(r.projeto.somaNaMistura, 1)}</td><td></td><td></td></tr>`;
+  const mats = p.materiais;
+  const gran = r.projeto.linhas.map((l, i) => `<tr><td class="rot">${l.peneira.nome}</td><td class="num">${mmTxt(l.peneira.mm)}</td>
+      ${mats.map(m => `<td class="num">${n(m.passantes[i], 2)}</td>`).join('')}
+      <td class="num forte">${n(l.combinado, 1)}</td><td class="num">${n(l.tolerancia, 0)}</td>
+      <td class="num">${n(l.trabalhoMin, 1)}</td><td class="num">${n(l.trabalhoMax, 1)}</td>
+      <td class="num">${n(l.faixaMin, 0)}</td><td class="num">${n(l.faixaMax, 0)}</td></tr>`).join('');
+  const corpo = paresFolha([
+      ['Projeto / traço', atr(id.projeto || '—'), true], ['Data do projeto', atr(id.dataProjeto || '—')],
+      ['Empresa (projeto)', atr(id.empresa || '—')], ['Pedreira', atr(id.pedreira || '—')],
+      ['Rodovia', atr(id.rodovia || '—')], ['Trecho', atr(id.trecho || '—')],
+      ['Camada', atr(id.camada || '—')], ['Ligante', atr(id.ligante || '—')]], 4)
+    + `<div class="colunas2"><div>${secao('Parâmetros de projeto · DNIT 031/2024-ES (Tabelas 4 e 5)')}
+        ${tabelaFolha([46, 18, 18, 18], '<tr><th>Parâmetro</th><th>Projeto</th><th>Espec.</th><th>Situação</th></tr>', tabPar)}</div>
+      <div>${secao('Curva de projeto e faixa de trabalho')}${grafico('projcauq', 96, '', 0.55)}</div></div>`
+    + secao('Composição da mistura')
+    + tabelaFolha([30, 26, 11, 11, 11, 11], '<tr><th>Material</th><th>Procedência</th><th>% agregados</th><th>% na mistura</th><th>Dr</th><th>Da</th></tr>', comp)
+    + secao('Granulometria de projeto (% passante) e faixa de trabalho · DNIT 031/2024-ES, Tabela 3')
+    + tabelaFolha([8, 6, ...mats.map(() => 46 / mats.length), 8, 6, 7, 7, 6, 6],
+      `<tr><th>Peneira</th><th>mm</th>${mats.map(m => `<th>${atr(String(m.nome || '').replace(/\s*\(.*\)$/, ''))}</th>`).join('')}
+        <th>Projeto</th><th>Tol. ±</th><th>Trab. mín.</th><th>Trab. máx.</th><th>Faixa mín.</th><th>Faixa máx.</th></tr>`, gran);
+  return [folha({
+    titulo: 'Projeto de Mistura — CAUQ', sub: `Dados do projeto · ${atr(id.faixa || 'DNIT 031/2024-ES')}`,
+    norma: 'DNIT 031/2024-ES', pagina, total,
+    extras: [['Teor de projeto', `${n(par.teorProjeto, 2)} %`], ['Gsb', n(par.gsbProjeto, 3)], ['Rice', n(par.riceProjeto, 3)]],
+    corpo, obs: estado.medicaoCauq.observacoes || '',
+  })];
 }
 /* ============================================================
    APLICAÇÃO DE C.A.U.Q — controle da massa lançada na pista
@@ -10698,7 +10952,7 @@ function htmlFichasRascunho(abas = fichasDoModo(), preenchido = null) {
       else blocos += um(b);
     }
     const linhasGrade = f.blocos.filter(b => b.tipo === 'grade').reduce((s, b) => s + b.linhas.length, 0);
-    const compacta = linhasGrade >= 12 ? ' compacta' : '';
+    const compacta = linhasGrade >= 12 || f.compacta ? ' compacta' : '';
     const folhaN = total > 1 ? ` · folha ${k + 1} de ${total}` : '';
     return `<section class="pg${compacta}">
       <header>${logo ? `<img src="${logo}" alt="">` : ''}<div><b>RASCUNHO${folhaN.toUpperCase()}</b><h1>${f.titulo}</h1></div>
@@ -11234,7 +11488,7 @@ const cabFamilia = atr => [
   ['Data', 'data', 'cab.data', 'data', _q(atr, 'dataEnsaio')],
   ['Laboratorista', 'laboratorista', 'cab.laboratorista', 'texto', _q(atr, 'laboratorista')],
 ];
-const CAB_CAUQ = cabFamilia('data-mq'), CAB_CONCRETO = cabFamilia('data-mc'), CAB_INSUMOS = cabFamilia('data-mi');
+const CAB_CAUQ = cabFamilia('data-mq'), CAB_PROJ = cabFamilia('data-mq').filter(c => c[1] !== 'registro'), CAB_CONCRETO = cabFamilia('data-mc'), CAB_INSUMOS = cabFamilia('data-mi');
 
 const PEN_CAUQ = ['1"', '3/4"', '1/2"', '3/8"', '1/4"', 'nº 4', 'nº 8', 'nº 16', 'nº 30', 'nº 50', 'nº 100', 'nº 200'];
 const PEN_AGREG = ['2"', '1 1/2"', '1"', '3/4"', '1/2"', '3/8"', '1/4"', 'nº 4', 'nº 8', 'nº 16', 'nº 30', 'nº 50', 'nº 100', 'nº 200'];
@@ -11314,7 +11568,8 @@ const FICHAS_OUTRAS = [
       .map(([r, f]) => lin(r, `ea.${f}`, i => `[data-cq="ea"][data-i="${i}"][data-f="${f}"]`)) }] },
 
   /* ---------------- Marshall 031/2024 ---------------- */
-  { aba: 'm31proj', modo: 'm031', codigo: PF + '-M1', titulo: 'Marshall 031 — obra, medição e projeto', primeira: true, cabs: CAB_CAUQ,
+  /* ---------------- Projeto de CAUQ (aba INSERIR INFORMAÇÕES) — uma ficha por aba ---------------- */
+  { aba: 'pcdados', modo: 'projcauq', codigo: PF + '-PJ1', compacta: true, titulo: 'Projeto de CAUQ — dados gerais', primeira: true, cabs: CAB_PROJ,
     blocos: [
       { tipo: 'campos', titulo: 'Obra', campos: [
         fAt('Obra', 'obra', _q('data-mq', 'obra'), 'texto', 2), fAt('Cliente', 'cliente', _q('data-mq', 'cliente'), 'texto'),
@@ -11329,7 +11584,10 @@ const FICHAS_OUTRAS = [
         fAt('Trecho', 'proj.trecho', _p31('identificacao.trecho'), 'texto', 2), fAt('Faixa', 'proj.faixa', _p31('identificacao.faixa'), 'texto'),
         fAt('Camada', 'proj.camada', _p31('identificacao.camada'), 'texto', 2), fAt('Ligante', 'proj.ligante', _p31('identificacao.ligante'), 'texto'),
         fAt('Empresa (projeto)', 'proj.empresa', _p31('identificacao.empresa'), 'texto', 2), fAt('Pedreira', 'proj.pedreira', _p31('identificacao.pedreira'), 'texto')] },
-      { tipo: 'campos', quebra: true, titulo: 'Parâmetros de projeto (DNIT 031/2024 · Tabelas 4 e 5)',
+    ] },
+  { aba: 'pcparam', modo: 'projcauq', codigo: PF + '-PJ2', compacta: true, titulo: 'Projeto de CAUQ — parâmetros e composição', cabs: CAB_PROJ,
+    blocos: [
+      { tipo: 'campos', titulo: 'Parâmetros de projeto (DNIT 031/2024 · Tabelas 4 e 5)',
         campos: PARAM_M031.map(([r, k]) => fAt(r, 'proj.' + k, _p31('parametros.' + k))) },
       { tipo: 'grade', titulo: 'Composição da mistura', colunas: ['Material', 'Procedência', '% agregados', 'Dr', 'Da'], idx: _idx(5),
         larguras: [6, 30, 25, 13, 13, 13],
@@ -11338,12 +11596,15 @@ const FICHAS_OUTRAS = [
           c => _p31(`materiais.${m}.${['nome', 'procedencia', 'percentual', 'densidadeReal', 'densidadeAparente'][c]}`)]) },
       { tipo: 'campos', titulo: 'Ligante', campos: [
         fAt('Ligante (CAP)', 'proj.cap', _p31('ligante.nome'), 'texto', 2), fAt('Procedência do ligante', 'proj.capProc', _p31('ligante.procedencia'), 'texto')] },
-      { tipo: 'grade', quebra: true, titulo: 'Granulometria de projeto (% passante) e faixa',
+    ] },
+  { aba: 'pcgranul', modo: 'projcauq', codigo: PF + '-PJ3', compacta: true, titulo: 'Projeto de CAUQ — granulometria de projeto', cabs: CAB_PROJ,
+    blocos: [
+      { tipo: 'grade', titulo: 'Granulometria de projeto (% passante) e faixa',
         colunas: () => [...nomesMat031(), 'Tol. ±', 'Faixa mín.', 'Faixa máx.'], idx: _idx(8),
         linhas: PEN_CAUQ.map((pn, li) => [pn, c => c < 5 ? `proj.pas.${c}.${li}` : `proj.${['tol', 'fmin', 'fmax'][c - 5]}.${li}`, 'num', '',
           c => c < 5 ? _p31(`materiais.${c}.passantes.${li}`) : _p31(c === 5 ? `tolerancias.${li}` : `limites.${li}.${c - 6}`)]) },
     ] },
-  { aba: 'm31granul', modo: 'm031', codigo: PF + '-M2', titulo: 'Marshall 031 — teor e granulometria', cabs: CAB_CAUQ,
+  { aba: 'm31granul', modo: 'm031', codigo: PF + '-M1', titulo: 'Marshall 031 — teor e granulometria', primeira: true, cabs: CAB_CAUQ,
     blocos: [
       { tipo: 'campos', titulo: 'Local', campos: [
         fAt('Posição (LD, LE, EIXO)', 'lado', _q('data-m31cab', 'lado'), 'texto'), fAt('Estaca inicial', 'estacaInicial', _q('data-m31cab', 'estacaInicial'), 'texto'),
@@ -11354,12 +11615,12 @@ const FICHAS_OUTRAS = [
       { tipo: 'grade', titulo: 'Granulometria — retido ACUMULADO (g)', colunas: ['Retido acumulado (g)'], idx: [0],
         linhas: PEN_CAUQ.map((n, k) => [n, () => `granul.${k}`, 'num', 'g', () => _q('data-m31', `granul.retidos.${k}`)]) },
     ] },
-  { aba: 'm31rice', modo: 'm031', codigo: PF + '-M3', titulo: 'Marshall 031 — densidade máxima (Rice)', cabs: CAB_CAUQ,
+  { aba: 'm31rice', modo: 'm031', codigo: PF + '-M2', titulo: 'Marshall 031 — densidade máxima (Rice)', cabs: CAB_CAUQ,
     blocos: [{ tipo: 'campos', titulo: 'Rice test', campos: [
       fAt('Peso da amostra (g)', 'amostra', _q('data-m31', 'rice.pesoAmostra')), fAt('Frasco + amostra + água (g)', 'frascoAmostraAgua', _q('data-m31', 'rice.frascoAmostraAgua')),
       fAt('Frasco + água (g)', 'frascoAgua', _q('data-m31', 'rice.frascoAgua')), fAt('Correção', 'correcao', _q('data-m31', 'rice.correcao')),
       fAt('Temperatura da água (°C)', 'temperatura', _q('data-m31', 'rice.temperatura'))] }] },
-  { aba: 'm31marshall', modo: 'm031', codigo: PF + '-M4', titulo: 'Marshall 031 — estabilidade e fluência', cabs: CAB_CAUQ,
+  { aba: 'm31marshall', modo: 'm031', codigo: PF + '-M3', titulo: 'Marshall 031 — estabilidade e fluência', cabs: CAB_CAUQ,
     blocos: [
       { tipo: 'campos', titulo: 'Banho', campos: [fAt('Temperatura da água (°C)', 'temperaturaAgua', _q('data-m31', 'marshall.temperaturaAgua'))] },
       { tipo: 'grade', titulo: 'Corpos de prova', colunas: ROMANOS.map(r => 'CP ' + r), idx: [0, 1, 2], linhas: [
@@ -11367,11 +11628,11 @@ const FICHAS_OUTRAS = [
         ['Leitura da prensa', 'leitura'], ['Fluência', 'fluencia']]
         .map(([r, f]) => lin(r, `marshall.${f}`, i => _q('data-m31', `marshall.cps.${i}.${f}`))) },
     ] },
-  { aba: 'm31rtd', modo: 'm031', codigo: PF + '-M5', titulo: 'Marshall 031 — tração diametral', cabs: CAB_CAUQ,
+  { aba: 'm31rtd', modo: 'm031', codigo: PF + '-M4', titulo: 'Marshall 031 — tração diametral', cabs: CAB_CAUQ,
     blocos: [{ tipo: 'grade', titulo: 'Corpos de prova', colunas: ROMANOS.map(r => 'CP ' + r), idx: [0, 1, 2], linhas: [
       ['Espessura (cm)', 'espessura'], ['Diâmetro (cm)', 'diametro'], ['Leitura da prensa', 'leitura']]
       .map(([r, f]) => lin(r, `rtd.${f}`, i => _q('data-m31', `rtd.${i}.${f}`))) }] },
-  { aba: 'm31dens', modo: 'm031', codigo: PF + '-M6', titulo: 'Marshall 031 — densidade dos agregados', cabs: CAB_CAUQ,
+  { aba: 'm31dens', modo: 'm031', codigo: PF + '-M5', titulo: 'Marshall 031 — densidade dos agregados', cabs: CAB_CAUQ,
     blocos: [
       { tipo: 'grade', titulo: 'Graúdos — DNER-ME 081/98', colunas: () => nomesDens031(), idx: [0, 1], linhas: [
         lin('Dimensão máx. caract. (mm)', 'dens.dmc', i => _q('data-m31', `dens.britas.${i}.dmc`)),
@@ -11386,7 +11647,7 @@ const FICHAS_OUTRAS = [
         ['A — seca em estufa', 'A'], ['B — picnômetro + água', 'B'], ['B1 — amostra SSS', 'B1'], ['C — pic. + amostra + água', 'C']]
         .map(([r, f]) => lin(r, `dens.po.${f}`, i => _q('data-m31', `dens.po.det.${i}.${f}`))) },
     ] },
-  { aba: 'm31agran', modo: 'm031', codigo: PF + '-M7', titulo: 'Marshall 031 — granulometria dos agregados', cabs: CAB_CAUQ,
+  { aba: 'm31agran', modo: 'm031', codigo: PF + '-M6', titulo: 'Marshall 031 — granulometria dos agregados', cabs: CAB_CAUQ,
     blocos: [
       { tipo: 'grade', titulo: 'Retido ACUMULADO (g), duas amostras por agregado',
         colunas: () => nomesAgreg031().flatMap(n => [`${n} · 1`, `${n} · 2`]), idx: () => _idx(2 * nAgreg031()),
@@ -12236,6 +12497,12 @@ function atualizar() {
       const a = atualizarAplicacao();
       montarFolhas({ aplicacao: a });
       ULTIMO_CALCULO = { aplicacao: a };
+      return;
+    }
+    if (estado.modo === 'projcauq') {
+      const m = atualizarM031();
+      montarFolhas({ projcauq: m });
+      ULTIMO_CALCULO = { projcauq: m };
       return;
     }
     if (estado.modo === 'm031') {
@@ -14174,6 +14441,8 @@ function atualizarCabecalhoNaTela() {
  */
 /** No Marshall 031/2024 estes campos são lançados na aba do ensaio, não em Dados. */
 const CAMPOS_DO_ENSAIO_M031 = ['registro', 'dataEnsaio', 'lado', 'cota', 'estacaInicial', 'estacaFinal'];
+/** No Projeto de CAUQ não há registro nem local: o projeto é identificado pelo nome (Projeto / traço). */
+const CAMPOS_FORA_PROJCAUQ = ['registro', 'lado', 'cota', 'estacaInicial', 'estacaFinal'];
 
 const CAMPOS_MEDICAO_CAUQ = [
   { g:'obraq',  k:'obra',               rot:'Obra',                    larg:2, obrig:true, dica:'Ex.: BR-000/UF' },
@@ -14212,7 +14481,7 @@ function montarDadosCauq() {
         : `<input type="${tipo}" data-mq="${c.k}" value="${atr(val)}"` +
           `${tipo === 'date' ? '' : ' class="caixa-alta"'}` +
           `${c.dica ? ` placeholder="${c.dica}"` : ''}>`;
-      return `<div style="grid-column:span ${c.larg}"${CAMPOS_DO_ENSAIO_M031.includes(c.k) ? ' data-id-m031="1"' : ''}>
+      return `<div style="grid-column:span ${c.larg}"${CAMPOS_DO_ENSAIO_M031.includes(c.k) ? ' data-id-m031="1"' : ''}${CAMPOS_FORA_PROJCAUQ.includes(c.k) ? ' data-id-proj="1"' : ''}>
                 <label>${c.rot}${c.obrig ? ' <span class="obrig">obrigatório</span>' : ''}</label>
                 ${campo}
               </div>`;
@@ -14310,7 +14579,7 @@ function cabecalhoObraCauq(extras = []) {
 
   const d = (estado.cauq || {}).dosagem || {};
   // no Marshall 031/2024 a faixa é a do projeto de mistura desse ensaio
-  const faixa = ['m031', 'aplicacao'].includes(estado.modo)
+  const faixa = ['m031', 'aplicacao', 'projcauq'].includes(estado.modo)
     ? ((((estado.m031 || {}).projeto || {}).identificacao || {}).faixa || '—')
     : (CAUQ.FAIXAS[d.faixa] || {}).nome || d.faixa;
 
@@ -14679,7 +14948,7 @@ const FAMILIAS = {
 const MODOS_DA_FAMILIA = {
   // solos: só a Caracterização de sondagem — ela já tem compactação, ISC, limites e granulometria
   solos:    ['csond'],
-  cauq:     ['marshall', 'm031', 'sondagem', 'aplicacao'],
+  cauq:     ['marshall', 'projcauq', 'm031', 'sondagem', 'aplicacao'],
   concreto: ['concreto'],
   insumos:  ['insumos'],
 };
@@ -14810,15 +15079,29 @@ const MODOS = {
       ['Equivalente de areia da mistura',  'DNIT 450/2024'],
     ],
   },
+  // cadastro, não ensaio: abre por Dados gerais → Projetos de CAUQ (não aparece em Tipo de ensaio)
+  projcauq: {
+    chave: 'projcauq',
+    oculto: true,
+    familia: 'cauq',
+    nome: 'Projeto de CAUQ',
+    desc: 'O projeto de mistura da obra (aba INSERIR INFORMAÇÕES da planilha): dados gerais, parâmetros, '
+        + 'composição e granulometria de projeto. Salvo uma vez, é só escolher no Marshall 031/2024.',
+    folhas: 1,
+    ensaios: [
+      ['Dados gerais e identificação do projeto', 'DNIT 031/2024'],
+      ['Parâmetros e composição da mistura',      'DNIT 031/2024 · Tabelas 4 e 5'],
+      ['Granulometria de projeto e faixa de trabalho', 'DNIT 031/2024 · Tabela 3'],
+    ],
+  },
   m031: {
     chave: 'm031',
     familia: 'cauq',
     nome: 'Marshall 031/2024',
-    desc: 'O ensaio no formato da planilha de controle: projeto de mistura já preenchido, '
+    desc: 'O ensaio no formato da planilha de controle: escolha o projeto de CAUQ e lance '
         + 'teor, granulometria, Rice, Marshall, tração diametral, densidades e granulometria dos agregados.',
     folhas: 2,
     ensaios: [
-      ['Projeto de mistura e faixa de trabalho', 'DNIT 031/2024'],
       ['Teor de CAP',                          'DNER-ME 053 · DNIT 158'],
       ['Granulometria da mistura',             'DNIT 412-ME'],
       ['Densidade máxima — Rice test',         'DNIT 427/2020'],
@@ -14902,7 +15185,8 @@ const ABA_DO_MODO = {
   completo:       'identificacao',
   csond:          'csident',
   marshall:       'cqbetume',
-  m031:           'm31proj',
+  projcauq:       'pcdados',
+  m031:           'm31granul',
   aplicacao:      'aplicacao',
   sondagem:       'sondagem',
   concreto:       'cbpeca',
@@ -14911,12 +15195,12 @@ const ABA_DO_MODO = {
 
 /** Rótulo curto para o chip do cabeçalho. */
 const ROTULO_CURTO = { simples:'Simples', caracterizacao:'5 ensaios', completo:'Completo', csond:'Caract. sondagem',
-                       marshall:'Marshall', m031:'Marshall 031', aplicacao:'Aplicação', sondagem:'Sondagem',
+                       marshall:'Marshall', projcauq:'Projeto CAUQ', m031:'Marshall 031', aplicacao:'Aplicação', sondagem:'Sondagem',
                        concreto:'Concreto', insumos:'Insumos' };
 
 function montarModos() {
   const daFamilia = MODOS_DA_FAMILIA[estado.familia] || Object.keys(MODOS);
-  $('modos').innerHTML = Object.values(MODOS).filter(m => daFamilia.includes(m.chave)).map(m => `
+  $('modos').innerHTML = Object.values(MODOS).filter(m => daFamilia.includes(m.chave) && !m.oculto).map(m => `
     <button type="button" class="modo${m.chave === estado.modo ? ' sel' : ''}" data-modo="${m.chave}">
       <span class="marca-radio"></span>
       <span>
@@ -14956,6 +15240,7 @@ function aplicarModo() {
   // no Marshall 031/2024 o registro e as estacas saem de Dados e vão para a aba do ensaio
   document.body.classList.toggle('modo-csond', estado.modo === 'csond');
   document.body.classList.toggle('modo-m031', ['m031', 'aplicacao'].includes(estado.modo));
+  document.body.classList.toggle('modo-projcauq', estado.modo === 'projcauq');
 
   document.querySelectorAll('[data-modos]').forEach(el => {
     const vale = el.dataset.modos.split(' ').includes(estado.modo);
@@ -16625,6 +16910,8 @@ const FOLHAS_POR_MODO = {
   marshall:       ['cauq'],
   /* Marshall 031/2024: o laudo da planilha e, havendo, a folha dos agregados */
   m031:           ['m031'],
+  /* Projeto de CAUQ: a aba INSERIR INFORMAÇÕES numa folha */
+  projcauq:       ['projcauq'],
   aplicacao:      ['aplicacao'],
   /* Sondagem: o lote inteiro de furos numa folha */
   sondagem:       ['sondagem'],
@@ -17387,6 +17674,7 @@ const CONSTRUTORES = {
   csResumo:      folhaCsResumo,
   sondagem:      folhaSondagem,
   m031:          folhaM031,
+  projcauq:      folhaProjetoCauq,
   aplicacao:     folhaAplicacao,
   concreto:      folhaConcreto,
   insumos:       folhaInsumos,
@@ -17437,6 +17725,7 @@ function montarFolhas(r) {
     const fecha = estado.modo === 'csond' ? folhaCsResumo
       : estado.modo === 'sondagem' ? folhaSondagem
       : estado.modo === 'm031' ? folhaM031
+      : estado.modo === 'projcauq' ? folhaProjetoCauq
       : estado.modo === 'aplicacao' ? folhaAplicacao
       : ({ cauq: folhaCauq, concreto: folhaConcreto,
            insumos: folhaInsumos }[estado.familia] || folhaResumo);
@@ -17554,6 +17843,7 @@ function desenharGraficosDaFolha(r, alvo) {
       else if (tipo === 'insitu')        desenharInSitu(r.insitu, svg);
       else if (tipo === 'cauq')          desenharCurvaCauq(r.cauq, svg);
       else if (tipo === 'm031')          desenharCurvaCauq(curvaM031(r.m031), svg);
+      else if (tipo === 'projcauq')      desenharCurvaCauq(curvaProjetoCauq(r.projcauq), svg);
       else if (tipo === 'concreto')      desenharEvolucaoConcreto(r.concreto, svg);
       else if (tipo === 'insumosMassa')  desenharBarrasMassaUnitaria(r.insumos, svg);
       else if (tipo === 'insumosForma')  desenharCurvaForma(r.insumos, svg);
@@ -18236,6 +18526,18 @@ function resumoDoCalculo(c) {
       atende: null,
     };
   }
+  if (cauq && estado.modo === 'projcauq') {
+    // o projeto é identificado pelo nome (Projeto / traço); a "estaca" é a faixa
+    const pr = (estado.m031 || {}).projeto || {}, id = pr.identificacao || {}, par = pr.parametros || {};
+    return { ...base,
+      registro: String(id.projeto || '').trim(), estaca: id.faixa || 'PROJETO',
+      camada: id.camada || base.camada, rodovia: id.rodovia || base.rodovia,
+      teorProjeto: par.teorProjeto ?? null, gsbProjeto: par.gsbProjeto ?? null, riceProjeto: par.riceProjeto ?? null,
+      gmbProjeto: par.gmbProjeto ?? null, vvProjeto: par.vaziosProjeto ?? null, rbvProjeto: par.rbvProjeto ?? null,
+      estProjeto: par.estabilidadeProjeto ?? null, rtProjeto: par.rtProjeto ?? null,
+      atende: null, pendencias: [],
+    };
+  }
   if (cauq && estado.modo === 'm031') {
     /* O resumo é o que vai para a planilha do Drive: tudo que a folha de
        resumo de CAUQ pede (teor, densidades, vazios, VAM, RBV, estabilidade,
@@ -18336,6 +18638,7 @@ let proximoId = 1;
 function faltaIdentificar(resumo) {
   const vazio = v => !String(v ?? '').trim();
   const falta = [];
+  if (resumo.modo === 'projcauq') { if (vazio(resumo.registro)) falta.push('Projeto / traço'); return falta; }
   if (vazio(resumo.registro)) falta.push('Registro');
   if (vazio(resumo.estaca)) falta.push(
     resumo.familia === 'concreto' ? 'Estaca de aplicação'
@@ -18536,10 +18839,11 @@ const LISTAS_HISTORICO = [
 ];
 
 function montarHistorico() {
+  if (typeof montarListaProjetosCauq === 'function') montarListaProjetosCauq();
   const aprovados = historicoAprovado();
   $('histQtd').textContent = aprovados.length
     ? `${aprovados.length} ${aprovados.length === 1 ? 'ensaio aprovado' : 'ensaios aprovados'}` : 'vazio';
-  const fora = historico.length - aprovados.length, fa = $('histForaAprov');
+  const fora = historico.filter(e => !(typeof ehCadastro === 'function' && ehCadastro(e))).length - aprovados.length, fa = $('histForaAprov');
   if (fa) fa.innerHTML = fora ? `<div class="aviso agenda"><span class="ico">◷</span><span>${fora} ensaio(s) em andamento ou aguardando aprovação — estão na aba <b>Aprovar</b>.</span></div>` : '';
 
   // ensaios salvos antes das famílias existirem são de solos
@@ -18638,6 +18942,12 @@ function cartoesDoHistorico(lista) {
       ['Esp. obtida',    num(r.espObtida, 2),   'cm'],
       ['Taxa',           num(r.taxa, 1),        'kg/m²'],
       ['Caminhões',      num(r.caminhoes, 0),   ''],
+    ] : r.modo === 'projcauq' ? [
+      ['Teor de projeto', num(r.teorProjeto, 2), '%'],
+      ['Gsb',             num(r.gsbProjeto, 3),  ''],
+      ['Rice',            num(r.riceProjeto, 3), ''],
+      ['Vazios',          num(r.vvProjeto, 2),   '%'],
+      ['Estabilidade',    num(r.estProjeto, 0),  'kgf'],
     ] : r.modo === 'sondagem' ? [
       ['Densidade média', num(r.densidade, 3), 'g/cm³'],
       ['Vazios',          num(r.vaziosSd, 2),  '%'],
@@ -18895,7 +19205,9 @@ document.addEventListener('click', ev => {
 const SITUACOES = { andamento: 'Em andamento', aguardando: 'Aguardando aprovação', aprovado: 'Aprovado', devolvido: 'Devolvido' };
 /* ensaio salvo antes de existir a aprovação já era histórico: vale como aprovado */
 const situacaoDe = e => (e && e.situacao) || 'aprovado';
-const historicoAprovado = () => historico.filter(e => situacaoDe(e) === 'aprovado');
+/* Projeto de CAUQ é cadastro (Dados gerais), não ensaio: viaja no histórico para chegar aos aparelhos, mas não entra nas listas */
+const ehCadastro = e => ((e && e.resumo) || {}).modo === 'projcauq';
+const historicoAprovado = () => historico.filter(e => !ehCadastro(e) && situacaoDe(e) === 'aprovado');
 const CAMPOS_APROVACAO = ['situacao', 'enviadoEm', 'enviadoPor', 'aprovadoEm', 'aprovadoPor', 'devolucao'];
 
 /* ---------- quem é o analista neste aparelho ---------- */
@@ -19004,8 +19316,8 @@ function cartaoAprovacao(e, analista) {
 
 function montarAprovacao() {
   const alvo = $('aprovarConteudo');
-  const aguardando = historico.filter(e => situacaoDe(e) === 'aguardando');
-  const andamento = historico.filter(e => ['andamento', 'devolvido'].includes(situacaoDe(e)));
+  const aguardando = historico.filter(e => !ehCadastro(e) && situacaoDe(e) === 'aguardando');
+  const andamento = historico.filter(e => !ehCadastro(e) && ['andamento', 'devolvido'].includes(situacaoDe(e)));
   // contagem na barra: o que espera aprovação
   document.querySelectorAll('nav button[data-aba="aprovar"] .conta-aprov').forEach(c => {
     c.textContent = aguardando.length ? String(aguardando.length) : ''; c.hidden = !aguardando.length; });
@@ -19891,7 +20203,7 @@ async function entrarNoBanco(email, senha, { pessoa = '', papelEsperado = '' } =
                    empresa_id: perfil.empresa_id, sigla: emp.sigla || '', empresa: emp.nome || '' };
   if (papelEsperado === 'gestor' && !APROVA(perfil.papel)) return sair('Esta senha não é a do gestor.');
   if (papelEsperado === 'laboratorista' && perfil.papel !== 'laboratorista') return sair('Esta senha não é a do laboratorista.');
-  if (outro) Object.assign(banco, { ultimaSincronia: '', marcaServidor: '', noServidor: {}, falhas: [] });
+  if (outro) Object.assign(banco, { ultimaSincronia: '', marcaServidor: '', noServidor: {}, falhas: [], pisBase: null });
   banco.pessoa = String(pessoa || '').trim().toUpperCase();
   banco.ultimoErro = null;
   gravarBanco();
@@ -20044,6 +20356,12 @@ async function sincronizarBanco({ silencioso = false } = {}) {
         falhas.push({ registro: (e.resumo || {}).registro || chave, motivo: erro.message.replace(/\.$/, '') + (x ? ' — voltou a versão do banco' : '') });
       }
     }
+    // 5 · os PIs de Dados gerais (tabela pontos): os mesmos para toda a equipe
+    let pis = null;
+    try { pis = await sincronizarPisBanco(); }
+    catch (erro) { if (erro.status === undefined) throw erro; falhas.push({ registro: 'PIs', motivo: erro.message.replace(/\.$/, '') }); }
+    if (pis) falhas.push(...pis.falhas);
+
     banco.falhas = falhas;
     banco.ultimaSincronia = new Date().toISOString();
     banco.ultimoErro = null;
@@ -20058,9 +20376,12 @@ async function sincronizarBanco({ silencioso = false } = {}) {
     if (apagados) partes.push(`${apagados} apagado(s)`);
     if (devolvidos) partes.push(`${devolvidos} devolvido(s) à lista`);
     if (daPlanilha) partes.push(`${daPlanilha} trazido(s) da planilha antiga`);
+    if (pis && pis.enviados) partes.push(`${pis.enviados} PI(s) enviado(s)`);
+    if (pis && pis.recebidos) partes.push(`${pis.recebidos} PI(s) recebido(s)`);
+    if (pis && pis.apagados) partes.push(`${pis.apagados} PI(s) apagado(s)`);
     if (!partes.length) partes.push('nada mudou');
     const recusas = falhas.length ? ` <b>${falhas.length} recusado(s)</b>: ${falhas.slice(0, 3).map(f => `${atr(f.registro)} — ${atr(f.motivo)}`).join('; ')}.` : '';
-    if (!silencioso || relatorio.novos || relatorio.atualizados || falhas.length)
+    if (!silencioso || relatorio.novos || relatorio.atualizados || falhas.length || (pis && pis.recebidos))
       avisarBanco(falhas.length ? 'erro' : 'ok', `Banco em dia: ${partes.join(', ')}.${recusas}`);
     return { enviados, ...relatorio, apagados, falhas };
   } catch (erro) {
@@ -20262,6 +20583,81 @@ document.addEventListener('click', async ev => {
 });
 
 /* ------------------------------------------------------------
+   PIs (Dados gerais) — tabela pontos, uma lista só para a empresa
+   Junção em três vias: o que mudou aqui desde a última conversa sobe; o que mudou
+   lá desce; apagado aqui é apagado lá (o banco só deixa o gestor apagar — se recusar,
+   o PI volta). `banco.pisBase` guarda como cada PI estava na última conversa.
+   ------------------------------------------------------------ */
+const numPi = v => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+const chavePi = n => String(typeof chaveMolde === 'function' ? chaveMolde(n) : n ?? '').trim().toUpperCase();
+const assinaturaPi = p => JSON.stringify([String(p.numero ?? '').trim(), String(p.rodovia || ''), String(p.pista || ''),
+  String(p.sentido || ''), numPi(p.km), numPi(p.latitude), numPi(p.longitude)]);
+const piDoBanco = x => ({ numero: String(x.numero), rodovia: x.rodovia || '', pista: x.pista || '', sentido: x.sentido || '',
+  km: numPi(x.km), latitude: numPi(x.latitude), longitude: numPi(x.longitude) });
+
+function guardarPisNoAparelho() {
+  if (typeof lerFichas !== 'function' || typeof FICHA_EQUIP === 'undefined') return;
+  const tudo = lerFichas();
+  const f = tudo[FICHA_EQUIP] || (tudo[FICHA_EQUIP] = { equip: {}, guardadoEm: new Date().toISOString() });
+  f.equip = f.equip || {};
+  f.equip.pis = JSON.parse(JSON.stringify(estado.equip.pis || []));
+  gravarFichas(tudo);
+}
+
+async function sincronizarPisBanco() {
+  if (typeof listaPis !== 'function') return null;
+  const emp = banco.perfil.empresa_id;
+  const remotos = await pedidoBanco(`/rest/v1/pontos?select=numero,rodovia,pista,sentido,km,latitude,longitude&empresa_id=eq.${emp}&order=numero.asc&limit=5000`);
+  const R = {}; (remotos || []).forEach(x => { R[chavePi(x.numero)] = piDoBanco(x); });
+  const B = banco.pisBase || {};
+  const lista = listaPis();
+  const L = {}; lista.forEach(p => { if (String(p.numero ?? '').trim()) L[chavePi(p.numero)] = p; });
+  const enviar = [], apagar = [], falhas = [];
+  let recebidos = 0, mudou = false;
+  const novaLista = [];
+  Object.entries(L).forEach(([k, p]) => {
+    const sL = assinaturaPi(p), sR = R[k] ? assinaturaPi(R[k]) : undefined;
+    if (sL !== B[k]) { if (sR !== sL) enviar.push(p); novaLista.push(p); }       // mexido aqui: sobe
+    else if (!R[k]) { mudou = true; }                                             // apagado lá: sai daqui
+    else if (sR !== B[k]) { novaLista.push(R[k]); recebidos++; mudou = true; }    // mexido lá: desce
+    else novaLista.push(p);
+  });
+  Object.entries(R).forEach(([k, p]) => {
+    if (L[k]) return;
+    if (B[k] !== undefined) apagar.push(p);                                       // apagado aqui
+    else { novaLista.push(p); recebidos++; mudou = true; }                        // novo lá
+  });
+  if (enviar.length) {
+    const agora = new Date().toISOString();
+    await pedidoBanco('/rest/v1/pontos?on_conflict=empresa_id,numero', { metodo: 'POST',
+      cab: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      corpo: enviar.map(p => ({ empresa_id: emp, numero: String(p.numero).trim(), rodovia: p.rodovia || null, pista: p.pista || null,
+        sentido: p.sentido || null, km: numPi(p.km), latitude: numPi(p.latitude), longitude: numPi(p.longitude), atualizado_em: agora })) });
+  }
+  let apagados = 0;
+  for (const p of apagar) {
+    let ok = false;
+    try {
+      const r = await pedidoBanco(`/rest/v1/pontos?empresa_id=eq.${emp}&numero=eq.${encodeURIComponent(p.numero)}`,
+        { metodo: 'DELETE', cab: { Prefer: 'return=representation' } });
+      ok = Array.isArray(r) && r.length > 0;
+    } catch (erro) { if (erro.status === undefined) throw erro; }
+    if (ok) apagados++;
+    else { novaLista.push(p); mudou = true; falhas.push({ registro: `PI ${p.numero}`, motivo: 'só o gestor apaga PI — ele voltou para a lista' }); }
+  }
+  if (mudou) {
+    novaLista.sort((a, b) => String(a.numero).localeCompare(String(b.numero), 'pt-BR', { numeric: true }));
+    lista.splice(0, lista.length, ...novaLista);
+    if (typeof montarEquipamentos === 'function' && $('tbPis')) montarEquipamentos();
+    if (typeof montarCsond === 'function') try { montarCsond(); } catch (e) {}
+  }
+  banco.pisBase = {};
+  lista.forEach(p => { if (String(p.numero ?? '').trim()) banco.pisBase[chavePi(p.numero)] = assinaturaPi(p); });
+  guardarPisNoAparelho();
+  return { enviados: enviar.length, recebidos, apagados, falhas };
+}
+
+/* ------------------------------------------------------------
    Ganchos: salvar, apagar, abrir o app, voltar o sinal
    ------------------------------------------------------------ */
 
@@ -20276,6 +20672,15 @@ if (CFG_BANCO) {
     sincronizarBanco({ silencioso: true });
   };
   window.addEventListener('online', () => { if (bancoLigado()) sincronizarBanco({ silencioso: true }); });
+  // mexeu no cadastro (PI digitado, importado ou apagado): sobe para a equipe em seguida
+  let pisAgendado = null;
+  const _cadastroAlterado = marcarCadastroAlterado;
+  marcarCadastroAlterado = function () {
+    _cadastroAlterado.apply(this, arguments);
+    if (!bancoLigado()) return;
+    clearTimeout(pisAgendado);
+    pisAgendado = setTimeout(() => sincronizarBanco({ silencioso: true }), (typeof window !== 'undefined' && window.__esperaPis) || 4000);
+  };
   // o que os outros lançam chega sozinho: ao voltar para o app e a cada minuto com ele aberto
   // (só busca o que mudou desde a última vez — é leve)
   document.addEventListener('visibilitychange', () => {

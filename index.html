@@ -2571,7 +2571,8 @@ summary:hover{color:var(--text);}
 <section class="aba" id="aba-m31rice" data-fam="cauq" data-modos="m031"><div data-rascslot="m31rice"></div><div id="m31Rice"></div></section>
 <section class="aba" id="aba-m31marshall" data-fam="cauq" data-modos="m031"><div data-rascslot="m31marshall"></div><div id="m31Marshall"></div></section>
 <section class="aba" id="aba-m31rtd" data-fam="cauq" data-modos="m031"><div data-rascslot="m31rtd"></div><div id="m31Rtd"></div></section>
-<section class="aba" id="aba-m31agreg" data-fam="cauq" data-modos="m031"><div data-rascslot="m31agreg"></div><div id="m31Agreg"></div></section>
+<section class="aba" id="aba-m31dens" data-fam="cauq" data-modos="m031"><div data-rascslot="m31dens"></div><div id="m31Dens"></div></section>
+<section class="aba" id="aba-m31agran" data-fam="cauq" data-modos="m031"><div data-rascslot="m31agran"></div><div id="m31AgrGran"></div></section>
 
 <!-- ============ APLICAÇÃO DE C.A.U.Q ============ -->
 <section class="aba" id="aba-aplicacao" data-fam="cauq" data-modos="aplicacao"><div data-rascslot="aplicacao"></div><div data-dadosslot="aplicacao"></div><div id="apConteudo"></div></section>
@@ -3227,9 +3228,13 @@ summary:hover{color:var(--text);}
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M2 12h3M19 12h3M12 2v3M12 19v3"/></svg>
     RTD
   </button>
-  <button type="button" data-aba="m31agreg" data-fam="cauq" data-modos="m031">
+  <button type="button" data-aba="m31dens" data-fam="cauq" data-modos="m031">
     <svg viewBox="0 0 24 24"><path d="M12 3l8 5v8l-8 5-8-5V8z"/><path d="M12 3v18"/></svg>
-    Agregados
+    Densid.
+  </button>
+  <button type="button" data-aba="m31agran" data-fam="cauq" data-modos="m031">
+    <svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 16h12M8 12h8M10 8h4"/></svg>
+    Gran. agreg.
   </button>
   <button type="button" data-aba="aplicacao" data-fam="cauq" data-modos="aplicacao">
     <svg viewBox="0 0 24 24"><path d="M3 17h11V7H3z"/><path d="M14 10h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
@@ -4599,17 +4604,30 @@ function calcularTeor({ pesoInicial, pesoFinal, fatorCalibracao = 1 }) {
    ------------------------------------------------------------ */
 
 /**
- * O peso de cada peneira é o retido NELA, não o acumulado. A base é o peso
- * final da extração: % retida = retido / peso final × 100, e a acumulada é a
- * soma das de cima.
+ * Dois jeitos, conforme a planilha da obra:
+ *  · `acumulado` (MATRIZ MARSHALL DIÁRIO): o peso de cada peneira é o retido
+ *    ACUMULADO até ela. E = (D − MÁXIMO(D de cima))/peso final · F = D/peso final.
+ *  · sem a marca (planilha antiga): o peso é o retido NELA, e a acumulada é a
+ *    soma das de cima. Ensaios salvos antes continuam assim.
+ * A base é sempre o peso final da extração.
  */
-function calcularGranulMistura({ retidos, pesoFinal, projeto }) {
-  let acum = 0, algum = false;
+function calcularGranulMistura({ retidos, pesoFinal, projeto, acumulado = false }) {
+  let acum = 0, algum = false, maior = null;
+  const base = ehNumero(pesoFinal) && pesoFinal > 0;
   const linhas = PENEIRAS.map((p, i) => {
     const r = retidos[i];
-    const retida = ehNumero(r) && ehNumero(pesoFinal) && pesoFinal > 0 ? r / pesoFinal * 100 : null;
-    if (ehNumero(retida)) { acum += retida; algum = true; }
-    const acumulada = ehNumero(retida) ? acum : null;
+    let retida = null, acumulada = null;
+    if (ehNumero(r) && base) {
+      if (acumulado) {
+        retida = (r - (ehNumero(maior) ? Math.max(maior, 0) : 0)) / pesoFinal * 100;
+        acumulada = r / pesoFinal * 100;
+        maior = ehNumero(maior) ? Math.max(maior, r) : r;
+      } else {
+        retida = r / pesoFinal * 100;
+        acum += retida; acumulada = acum;
+      }
+      algum = true;
+    }
     const passante = ehNumero(acumulada) ? 100 - acumulada : null;
     const l = projeto ? projeto.linhas[i] : null;
     const dentro = l && ehNumero(passante)
@@ -4620,9 +4638,11 @@ function calcularGranulMistura({ retidos, pesoFinal, projeto }) {
              dentroDaFaixaDeTrabalho: dentro };
   });
   const fora = linhas.filter(l => l.dentroDaFaixaDeTrabalho === false);
-  return { linhas, preenchida: algum, fora: fora.length,
-           avisos: fora.length ? [`Granulometria da mistura fora da faixa de trabalho em `
-             + `${fora.length} peneira(s): ${fora.map(l => l.peneira.nome).join(', ')}.`] : [] };
+  const avisos = fora.length ? [`Granulometria da mistura fora da faixa de trabalho em `
+    + `${fora.length} peneira(s): ${fora.map(l => l.peneira.nome).join(', ')}.`] : [];
+  if (acumulado && linhas.some((l, i) => i > 0 && ehNumero(l.retido) && ehNumero(linhas[i - 1].retido) && l.retido < linhas[i - 1].retido))
+    avisos.push('Granulometria da mistura: algum retido acumulado é menor que o da peneira de cima — confira se não foi lançado o retido da peneira.');
+  return { linhas, preenchida: algum, fora: fora.length, acumulado: !!acumulado, avisos };
 }
 
 /* ------------------------------------------------------------
@@ -4801,7 +4821,105 @@ function calcularGranulAgregado({ amostras }) {
   return { linhas, preenchida: linhas.some(l => ehNumero(l.media)) };
 }
 
-  return { CRITERIOS, DENSIDADE_AGUA, FATOR_ESPESSURA, MASSA_MINIMA_413, PENEIRAS, PENEIRAS_AGREGADO, TOLERANCIAS, VAM_BASE, arred, calcularAgregadoGraudo, calcularGranulAgregado, calcularGranulMistura, calcularMarshall, calcularProjeto, calcularRice, calcularRtd, calcularTeor, densidadeAgua, fatorEspessura, massaMinima413, procv, vamMinimo };
+/* ------------------------------------------------------------
+   9 · DENSIDADE DOS AGREGADOS — aba DENSIDADE AGREGADOS
+       graúdos: DNER-ME 081/98 (pesagem hidrostática, 2 determinações)
+       pó:      DNIT 411/2021-ME (picnômetro de 500 mL, 2 determinações)
+   ------------------------------------------------------------ */
+
+/** DNER-ME 081/98, Tabela 1 — Dmáx característica (mm) → massa mínima (kg). */
+const MASSA_MINIMA_081 = [[12.5,2],[19,3],[25,4],[38,5],[50,8],[64,12],[76,18],[100,40],[125,75],[152,125]];
+
+/** C18 = ÍNDICE(B; CONT.SE(A; "<"&Dmáx)+1) — entre dois valores, vale o maior. Acima de 152: ver norma. */
+function massaMinima081(dmc) {
+  if (!ehNumero(dmc)) return null;
+  if (dmc > 152) return 'ver norma';
+  return MASSA_MINIMA_081[MASSA_MINIMA_081.filter(([k]) => k < dmc).length][1];
+}
+
+/**
+ * Agregado graúdo, por determinação: Mh (sat. sup. seca ao ar), L (leitura
+ * submersa), Ms (seca em estufa).
+ *   Dap = Ms/(Mh − L) · a = (Mh − Ms)/Ms × 100 · médias das duas
+ *   |D1 − D2| ≤ 0,02 · |a1 − a2| ≤ 0,25 % (só quando a < 2 %) · Ms ≥ massa mínima
+ * Resultado (aba RESULTADOS): densidade = ARRED(Dap; 2), absorção = ARRED(a; 1).
+ */
+function calcularDensidadeGraudo({ dmc, det }) {
+  const dets = det.map(({ Mh, L, Ms }) => {
+    const mhL = ehNumero(Mh) && ehNumero(L) ? Mh - L : null;
+    return { Mh, L, Ms, mhL,
+             dap: ehNumero(Ms) && ehNumero(mhL) && mhL !== 0 ? Ms / mhL : null,
+             absorcao: ehNumero(Mh) && ehNumero(Ms) && Ms !== 0 ? (Mh - Ms) / Ms * 100 : null };
+  });
+  const dap = media(dets.map(d => d.dap)), absorcao = media(dets.map(d => d.absorcao));
+  const dois = k => dets.filter(d => ehNumero(d[k])).length === 2;
+  const difDap = dois('dap') ? Math.abs(dets[0].dap - dets[1].dap) : null;
+  const difAbs = dois('absorcao') ? Math.abs(dets[0].absorcao - dets[1].absorcao) : null;
+  const massaMin = massaMinima081(dmc);
+  const secas = dets.map(d => d.Ms).filter(ehNumero);
+  return {
+    dmc, massaMinima: massaMin, determinacoes: dets, dap, absorcao, difDap, difAbs,
+    sitDap: difDap === null ? null : difDap <= 0.02 ? 'ATENDE' : 'REPETIR',
+    sitAbs: difAbs === null ? null : absorcao >= 2 ? 'SEM LIMITE' : difAbs <= 0.25 ? 'ATENDE' : 'REPETIR',
+    sitMassa: !secas.length || !ehNumero(massaMin) ? null
+      : Math.min(...secas) >= massaMin * 1000 ? 'ATENDE' : 'ABAIXO DO MÍNIMO',
+    densidade: ehNumero(dap) ? arred(dap, 2) : null,
+    absorcaoResultado: ehNumero(absorcao) ? arred(absorcao, 1) : null,
+  };
+}
+
+/** Limites d2s de um operador (Anexo B da DNIT 411/2021-ME, informativo). */
+const D2S_411 = { gsa: 0.032, gsb: 0.027, absorcao: 0.31 };
+
+/**
+ * Pó (miúdo), por determinação: A seca, B picnômetro com água, B1 amostra SSS,
+ * C picnômetro + amostra + água.
+ *   Gsa = A/(A+B−C) · Gsb = A/(B1+B−C) · MEsa = ρw·Gsa · MEsb = ρw·Gsb
+ *   Absorção = 100 (B1 − A)/A · resultado: Gsa e Gsb com 3 casas, absorção com 1.
+ */
+function calcularDensidadePo({ temperatura, rhoAgua = 0.9971, det }) {
+  const dets = det.map(({ A, B, B1, C }) => {
+    const ok = [A, B, B1, C].every(ehNumero);
+    const gsa = ok && A + B - C !== 0 ? A / (A + B - C) : null;
+    const gsb = ok && B1 + B - C !== 0 ? A / (B1 + B - C) : null;
+    return { A, B, B1, C, gsa, gsb,
+             mesa: ehNumero(gsa) && ehNumero(rhoAgua) ? rhoAgua * gsa : null,
+             mesb: ehNumero(gsb) && ehNumero(rhoAgua) ? rhoAgua * gsb : null,
+             absorcao: ok && A !== 0 ? 100 * (B1 - A) / A : null };
+  });
+  const m = k => media(dets.map(d => d[k]));
+  const dif = k => dets.filter(d => ehNumero(d[k])).length === 2 ? Math.abs(dets[0][k] - dets[1][k]) : null;
+  const sit = k => { const d = dif(k); return d === null ? null : d <= D2S_411[k] ? 'ATENDE' : 'REPETIR'; };
+  const gsa = m('gsa'), gsb = m('gsb'), absorcao = m('absorcao');
+  return {
+    temperatura, rhoAgua, determinacoes: dets, gsa, gsb, mesa: m('mesa'), mesb: m('mesb'), absorcao,
+    difGsa: dif('gsa'), difGsb: dif('gsb'), difAbs: dif('absorcao'),
+    sitGsa: sit('gsa'), sitGsb: sit('gsb'), sitAbs: sit('absorcao'),
+    temperaturaOk: ehNumero(temperatura) ? Math.abs(temperatura - 25) <= 2 : null,
+    densidade: ehNumero(gsa) ? arred(gsa, 3) : null,
+    gsbResultado: ehNumero(gsb) ? arred(gsb, 3) : null,
+    absorcaoResultado: ehNumero(absorcao) ? arred(absorcao, 1) : null,
+  };
+}
+
+/**
+ * Gsb combinado da aba MARSHALL (O58), com os RESULTADOS arredondados:
+ *   Σ% / (%brita19/D19 + %brita9,5/D9,5 + (%pó+%areia+%cal)/Gsb pó)
+ * Faltando a densidade de um agregado que tem proporção, dá erro na planilha
+ * (SEERRO → "") e o VAM usa o Gsb de projeto (N58).
+ */
+function gsbCombinadoDensidades({ proporcoes, britas, po }) {
+  const pc = i => (ehNumero(proporcoes[i]) ? proporcoes[i] : 0);
+  const soma = proporcoes.reduce((s, _, i) => s + pc(i), 0);
+  let den = 0, ok = soma > 0;
+  [[pc(0), britas[0]], [pc(1), britas[1]], [pc(2) + pc(3) + pc(4), po]].forEach(([p, g]) => {
+    if (!(p > 0)) return;
+    if (ehNumero(g) && g !== 0) den += p / g; else ok = false;
+  });
+  return ok && den > 0 ? soma / den : null;
+}
+
+  return { CRITERIOS, D2S_411, DENSIDADE_AGUA, FATOR_ESPESSURA, MASSA_MINIMA_081, MASSA_MINIMA_413, PENEIRAS, PENEIRAS_AGREGADO, TOLERANCIAS, VAM_BASE, arred, calcularAgregadoGraudo, calcularDensidadeGraudo, calcularDensidadePo, calcularGranulAgregado, calcularGranulMistura, calcularMarshall, calcularProjeto, calcularRice, calcularRtd, calcularTeor, densidadeAgua, fatorEspessura, gsbCombinadoDensidades, massaMinima081, massaMinima413, procv, vamMinimo };
 })();
 
 /* ============================================================
@@ -7908,7 +8026,8 @@ const britasM031 = () => (ENSAIO_M031_MARCA.britas
 const M031_PADRAO = {
   projeto: projetoM031Padrao(),
   betume: { pesoInicial:null, pesoFinal:null, fatorCalibracao: ENSAIO_M031_MARCA.fatorCalibracao ?? 1 },
-  granul: { retidos: vazios12() },
+  // retido ACUMULADO em cada peneira, como a MATRIZ MARSHALL DIÁRIO (ensaios antigos: retido na peneira)
+  granul: { retidos: vazios12(), acumulado: true },
   rice: { pesoAmostra:null, frascoAmostraAgua:null,
           frascoAgua: ENSAIO_M031_MARCA.frascoAgua ?? null,
           correcao: ENSAIO_M031_MARCA.correcaoRice ?? 0.9971, temperatura: 25 },
@@ -7919,10 +8038,31 @@ const M031_PADRAO = {
                                              pesoSSS:null, leitura:null, fluencia:null })),
   },
   rtd: ['I', 'II', 'III'].map(numero => ({ numero, espessura:null, diametro:null, leitura:null })),
+  // DNIT 413 de uma determinação — só dos ensaios salvos antes da aba Densidades
   agreg: { britas: britasM031(), poGsb: null },
-  agrGran: ['BRITA 19,1', 'BRITA 9,5', 'PÓ 1/4"', 'CAL CH-I'].map(nome => ({
+  // aba DENSIDADE AGREGADOS: graúdos pela DNER-ME 081/98 e pó pela DNIT 411/2021-ME, duas determinações
+  dens: {
+    britas: [['BRITA 19,1 mm', 19], ['BRITA 9,5 mm', 9.5]].map(([nome, dmc]) => ({
+      nome, procedencia: '', dmc, temperatura: 25, det: [0, 1].map(() => ({ Mh:null, L:null, Ms:null })) })),
+    po: { nome: 'PÓ 1/4"', procedencia: '', temperatura: 25, rhoAgua: 0.9971,
+          det: [0, 1].map(() => ({ A:null, B:null, B1:null, C:null })) },
+  },
+  agrGran: ['BRITA 19,1', 'BRITA 9,5', 'PÓ 1/4"'].map(nome => ({
     nome, amostras: [{ total:null, retidos: vazios14() }, { total:null, retidos: vazios14() }] })),
 };
+
+/** Ensaio salvo antes do retido acumulado: continua com o retido em cada peneira. */
+function migrarEstadoM031(est) {
+  const g = est && est.m031 && est.m031.granul;
+  if (g && typeof g === 'object' && !('acumulado' in g)) g.acumulado = false;
+}
+
+const temNum = v => typeof v === 'number' && Number.isFinite(v);
+/** Há algo lançado na aba Densidades? */
+const densLancadaM031 = d => !!d && ([...d.britas.flatMap(b => b.det.flatMap(x => [x.Mh, x.L, x.Ms])),
+  ...d.po.det.flatMap(x => [x.A, x.B, x.B1, x.C])].some(temNum));
+/** Ensaio antigo, com a massa específica DNIT 413 de uma determinação? */
+const agregLegadoM031 = a => !!a && (a.britas.some(b => [b.A, b.B, b.C].some(temNum)) || temNum(a.poGsb));
 
 /** O cabeçalho da obra que a planilha traz pronto — entra em medicaoCauq. */
 const CABECALHO_M031 = (M031_DA_MARCA && M031_DA_MARCA.cabecalho) || {};
@@ -8129,16 +8269,17 @@ function montarM031() {
       <p class="hint" id="m31TeorSit"></p>
     </div>
     <div class="card">
-      <h2>Granulometria da mistura <span class="tag">Peso retido em cada peneira</span></h2>
-      <p class="hint" style="margin:0 0 14px">Digite o peso retido <b>em cada peneira</b> (não o
-        acumulado). A base do cálculo é o peso final da extração.</p>
+      <h2>Granulometria da mistura <span class="tag">${s.granul.acumulado ? 'Peso retido ACUMULADO' : 'Peso retido em cada peneira'}</span></h2>
+      <p class="hint" style="margin:0 0 14px">${s.granul.acumulado
+        ? 'Digite o peso retido <b>acumulado</b> até cada peneira, como na planilha. A base do cálculo é o peso final da extração.'
+        : 'Ensaio antigo: o peso é o retido <b>em cada peneira</b> (não o acumulado). A base do cálculo é o peso final da extração.'}</p>
       <div class="tabwrap"><table class="t-form">
-        <thead><tr><th>Peneira</th><th>mm</th><th>Retido (g)</th><th>% retida</th><th>% acum.</th>
+        <thead><tr><th>Peneira</th><th>mm</th><th>${s.granul.acumulado ? 'Ret. acum. (g)' : 'Retido (g)'}</th><th>% retida</th><th>% acum.</th>
           <th>% passante</th><th class="det">Faixa de trabalho</th><th>Situação</th></tr></thead>
         <tbody>${P31.map((pn, i) => `<tr>
           <td class="cap" data-rot="Peneira">${pn.nome}</td>
           <td class="num" data-rot="mm">${mmTxt(pn.mm)}</td>
-          <td data-rot="Retido (g)">${nM31('granul.retidos.' + i)}</td>
+          <td data-rot="${s.granul.acumulado ? 'Ret. acum. (g)' : 'Retido (g)'}">${nM31('granul.retidos.' + i)}</td>
           <td class="num" data-rot="% retida" id="m31GrRet${i}">—</td>
           <td class="num" data-rot="% acum." id="m31GrAc${i}">—</td>
           <td class="forte" data-rot="% passante" id="m31GrPas${i}">—</td>
@@ -8246,39 +8387,87 @@ function montarM031() {
       <p class="hint">Mínimo de <b>0,65 MPa</b>. Como na planilha, o resultado é a mediana dos três CPs.</p>
     </div>`;
 
-  /* ---------- AGREGADOS ---------- */
-  const ag = s.agreg;
-  $('m31Agreg').innerHTML = `
+  /* ---------- DENSIDADES (aba DENSIDADE AGREGADOS) ---------- */
+  const D = s.dens;
+  const ldet = (rot, i, k, f) => `<td data-rot="${rot}">${nM31(`dens.britas.${i}.det.${k}.${f}`, '0.1')}</td>`;
+  $('m31Dens').innerHTML = `
+    ${D.britas.map((b, i) => `
     <div class="card">
-      <h2>Agregado graúdo — massa específica e absorção <span class="tag">DNIT 413/2021</span></h2>
-      <div class="tabwrap"><table class="t-form">
-        <thead><tr><th>Agregado</th><th>TNM (mm)</th><th>Temp. água (°C)</th><th>A — seco (g)</th>
-          <th>B — sat. s.s. (g)</th><th>C — imerso (g)</th><th>Massa mín.</th><th>Gsa</th><th>Gsb</th>
-          <th>Absorção %</th></tr></thead>
-        <tbody>${ag.britas.map((b, i) => `<tr>
-          <td data-rot="Agregado">${tM31(`agreg.britas.${i}.nome`)}</td>
-          <td data-rot="TNM (mm)">${nM31(`agreg.britas.${i}.tnm`, '0.1')}</td>
-          <td data-rot="Temp. água (°C)">${nM31(`agreg.britas.${i}.temperatura`, '1')}</td>
-          <td data-rot="A — seco (g)">${nM31(`agreg.britas.${i}.A`, '0.1')}</td>
-          <td data-rot="B — sat. s.s. (g)">${nM31(`agreg.britas.${i}.B`, '0.1')}</td>
-          <td data-rot="C — imerso (g)">${nM31(`agreg.britas.${i}.C`, '0.1')}</td>
-          <td class="num" data-rot="Massa mín." id="m31AgMin${i}">—</td>
-          <td class="num" data-rot="Gsa" id="m31AgGsa${i}">—</td>
-          <td class="forte" data-rot="Gsb" id="m31AgGsb${i}">—</td>
-          <td class="num" data-rot="Absorção %" id="m31AgAbs${i}">—</td>
-        </tr>`).join('')}</tbody></table></div>
-      <div class="grid3" style="margin-top:12px">
-        <div><label>Gsb do pó / miúdo (g/cm³)</label>${nM31('agreg.poGsb', '0.001')}</div>
+      <h2>Agregado ${['I', 'II'][i]} — graúdo <span class="tag">DNER-ME 081/98 · pesagem hidrostática</span></h2>
+      <div class="grid4">
+        <div style="grid-column:span 2"><label>Material</label>${tM31(`dens.britas.${i}.nome`)}</div>
+        <div style="grid-column:span 2"><label>Procedência</label>${tM31(`dens.britas.${i}.procedencia`)}</div>
+        <div><label>Dimensão máx. característica (mm)</label>${nM31(`dens.britas.${i}.dmc`, '0.1')}</div>
+        <div><label>Temperatura da água (°C)</label>${nM31(`dens.britas.${i}.temperatura`, '1')}</div>
+        <div><label>Massa mínima (Tabela 1)</label><input type="text" id="m31DnMin${i}" disabled></div>
       </div>
+      <div class="tabwrap" style="margin-top:12px"><table class="t-form">
+        <thead><tr><th>Determinação</th><th>Mh — sat. sup. seca ao ar (g)</th><th>L — leitura submersa (g)</th>
+          <th>Ms — seca em estufa (g)</th><th>Mh − L</th><th>Dap</th><th>Absorção %</th></tr></thead>
+        <tbody>${[0, 1].map(k => `<tr><td class="cap" data-rot="Determinação">${k + 1}ª</td>
+          ${ldet('Mh (g)', i, k, 'Mh')}${ldet('L (g)', i, k, 'L')}${ldet('Ms (g)', i, k, 'Ms')}
+          <td class="num" data-rot="Mh − L" id="m31DnMhL${i}_${k}">—</td>
+          <td class="num" data-rot="Dap" id="m31DnDap${i}_${k}">—</td>
+          <td class="num" data-rot="Absorção %" id="m31DnAbs${i}_${k}">—</td></tr>`).join('')}
+          <tr class="destaque"><td class="cap">Média</td><td></td><td></td><td></td><td></td>
+            <td class="forte" data-rot="Dap média" id="m31DnDap${i}">—</td>
+            <td class="forte" data-rot="Absorção média" id="m31DnAbs${i}">—</td></tr>
+        </tbody></table></div>
+      <p class="hint" id="m31DnSit${i}"></p>
+    </div>`).join('')}
+    <div class="card">
+      <h2>Agregado III — pó <span class="tag">DNIT 411/2021-ME · picnômetro 500 mL</span></h2>
+      <div class="grid4">
+        <div style="grid-column:span 2"><label>Material</label>${tM31('dens.po.nome')}</div>
+        <div style="grid-column:span 2"><label>Procedência</label>${tM31('dens.po.procedencia')}</div>
+        <div><label>Temperatura do ensaio (°C)</label>${nM31('dens.po.temperatura', '1')}</div>
+        <div><label>Massa espec. da água ρw (g/cm³)</label>${nM31('dens.po.rhoAgua', '0.0001')}</div>
+      </div>
+      <div class="tabwrap" style="margin-top:12px"><table class="t-form">
+        <thead><tr><th>Determinação</th><th>A — seca (g)</th><th>B — picnômetro + água (g)</th>
+          <th>B1 — amostra SSS (g)</th><th>C — pic. + amostra + água (g)</th><th>Gsa</th><th>Gsb</th><th>Absorção %</th></tr></thead>
+        <tbody>${[0, 1].map(k => `<tr><td class="cap" data-rot="Determinação">${k + 1}ª</td>
+          ${['A', 'B', 'B1', 'C'].map(f => `<td data-rot="${f} (g)">${nM31(`dens.po.det.${k}.${f}`)}</td>`).join('')}
+          <td class="num" data-rot="Gsa" id="m31DpGsa${k}">—</td>
+          <td class="num" data-rot="Gsb" id="m31DpGsb${k}">—</td>
+          <td class="num" data-rot="Absorção %" id="m31DpAbs${k}">—</td></tr>`).join('')}
+          <tr class="destaque"><td class="cap">Média</td><td></td><td></td><td></td><td></td>
+            <td class="forte" data-rot="Gsa média" id="m31DpGsa">—</td>
+            <td class="forte" data-rot="Gsb média" id="m31DpGsb">—</td>
+            <td class="forte" data-rot="Absorção média" id="m31DpAbs">—</td></tr>
+        </tbody></table></div>
+      <p class="hint" id="m31DpSit"></p>
+    </div>
+    <div class="card">
+      <h2>Resultados <span class="tag">vão para o VAM</span></h2>
+      <div class="tabwrap"><table class="t-form">
+        <thead><tr><th>Agregado</th><th>Norma</th><th>Densidade</th><th>Gsb</th><th>Absorção %</th><th>Projeto (Da)</th></tr></thead>
+        <tbody id="m31DnRes"></tbody></table></div>
       <div class="tiles" style="margin-top:14px">
-        <div class="tile" style="--cor:var(--s1)"><div class="k">Gsb combinado (Eq. 5)</div><div class="v" id="m31AgComb">—</div></div>
+        <div class="tile" style="--cor:var(--s1)"><div class="k">Gsb combinado (ensaio)</div><div class="v" id="m31AgComb">—</div></div>
+        <div class="tile" style="--cor:var(--s2)"><div class="k">Gsb de projeto</div><div class="v" id="m31AgProj">—</div></div>
         <div class="tile destaque"><div class="k">Gsb usado no VAM</div><div class="v" id="m31AgAdot">—</div></div>
       </div>
       <p class="hint" id="m31AgOrigem"></p>
     </div>
-    ${s.agrGran.map((a, k) => `
+    ${agregLegadoM031(s.agreg) && !densLancadaM031(D) ? `
     <div class="card">
-      <h2>${tM31(`agrGran.${k}.nome`)} <span class="tag">${k === 3 ? 'DNIT 418-EM / 412-ME' : 'DNIT 412-ME'}</span></h2>
+      <h2>Ensaio antigo — DNIT 413/2021 <span class="tag">uma determinação</span></h2>
+      <p class="hint" style="margin:0 0 12px">Este ensaio foi salvo antes da aba Densidades: a massa específica
+        segue com a pesagem antiga. Lançando as densidades acima, elas passam a valer.</p>
+      <div class="tabwrap"><table class="t-form">
+        <thead><tr><th>Agregado</th><th>A (g)</th><th>B (g)</th><th>C (g)</th><th>Gsb</th><th>Absorção %</th></tr></thead>
+        <tbody>${s.agreg.britas.map((b, i) => `<tr><td class="cap">${atr(b.nome)}</td>
+          <td>${nM31(`agreg.britas.${i}.A`, '0.1')}</td><td>${nM31(`agreg.britas.${i}.B`, '0.1')}</td>
+          <td>${nM31(`agreg.britas.${i}.C`, '0.1')}</td>
+          <td class="forte" id="m31AgGsb${i}">—</td><td class="num" id="m31AgAbs${i}">—</td></tr>`).join('')}
+          <tr><td class="cap">Gsb do pó</td><td colspan="5">${nM31('agreg.poGsb', '0.001')}</td></tr></tbody></table></div>
+    </div>` : ''}`;
+
+  /* ---------- GRANULOMETRIA DOS AGREGADOS (abas BRITA / PÓ) ---------- */
+  $('m31AgrGran').innerHTML = s.agrGran.map((a, k) => `
+    <div class="card">
+      <h2>${tM31(`agrGran.${k}.nome`)} <span class="tag">DNIT 412-ME · retido acumulado</span></h2>
       <div class="grid2">
         <div><label>Peso total — amostra 1 (g)</label>${nM31(`agrGran.${k}.amostras.0.total`, '0.1')}</div>
         <div><label>Peso total — amostra 2 (g)</label>${nM31(`agrGran.${k}.amostras.1.total`, '0.1')}</div>
@@ -8294,7 +8483,8 @@ function montarM031() {
           <td class="num" data-rot="% passa 2" id="m31Ag${k}P2_${i}">—</td>
           <td class="forte" data-rot="Média" id="m31Ag${k}M_${i}">—</td>
         </tr>`).join('')}</tbody></table></div>
-    </div>`).join('')}`;
+      <p class="hint" id="m31AgAviso${k}"></p>
+    </div>`).join('');
 
   ligarM031();
 }
@@ -8309,14 +8499,30 @@ function calcularM031() {
   const projeto = M.calcularProjeto({ materiais: p.materiais, teorProjeto: par.teorProjeto,
                                       limites: p.limites, tolerancias: p.tolerancias });
   const teor = M.calcularTeor(s.betume);
-  const granul = M.calcularGranulMistura({ retidos: s.granul.retidos, pesoFinal: s.betume.pesoFinal, projeto });
+  const granul = M.calcularGranulMistura({ retidos: s.granul.retidos, pesoFinal: s.betume.pesoFinal, projeto,
+                                          acumulado: !!s.granul.acumulado });
   const gmm = M.calcularRice(s.rice);
   const pct = i => (p.materiais[i] && Number.isFinite(p.materiais[i].percentual)) ? p.materiais[i].percentual : 0;
-  const agreg = M.calcularAgregadoGraudo({
-    britas: s.agreg.britas.map((b, i) => ({ ...b, proporcao: pct(i) })),
-    po: { gsb: s.agreg.poGsb, proporcao: p.materiais.slice(2).reduce((t, _, i) => t + pct(i + 2), 0) },
-    gsbProjeto: par.gsbProjeto,
-  });
+  // densidades: a aba nova (081 + 411) manda; ensaio antigo segue com a DNIT 413 de uma determinação
+  const dens = {
+    britas: s.dens.britas.map(b => ({ nome: b.nome, procedencia: b.procedencia, temperatura: b.temperatura,
+                                      ...M.calcularDensidadeGraudo({ dmc: b.dmc, det: b.det }) })),
+    po: { nome: s.dens.po.nome, procedencia: s.dens.po.procedencia, ...M.calcularDensidadePo(s.dens.po) },
+    lancada: densLancadaM031(s.dens),
+  };
+  let agreg;
+  if (dens.lancada || !agregLegadoM031(s.agreg)) {
+    const comb = M.gsbCombinadoDensidades({ proporcoes: p.materiais.map(m => m.percentual),
+      britas: dens.britas.map(b => b.densidade), po: dens.po.gsbResultado });
+    agreg = { britas: [], gsbCombinado: comb, gsbAdotado: Number.isFinite(comb) ? comb : par.gsbProjeto,
+              origemGsb: Number.isFinite(comb) ? 'ensaio' : 'projeto', legado: false };
+  } else {
+    agreg = { ...M.calcularAgregadoGraudo({
+      britas: s.agreg.britas.map((b, i) => ({ ...b, proporcao: pct(i) })),
+      po: { gsb: s.agreg.poGsb, proporcao: p.materiais.slice(2).reduce((t, _, i) => t + pct(i + 2), 0) },
+      gsbProjeto: par.gsbProjeto,
+    }), legado: true };
+  }
   const vamProjMin = Number.isFinite(par.vaziosProjeto)
     ? M.vamMinimo(par.tnm, par.vaziosProjeto) : null;
   const marshall = M.calcularMarshall({
@@ -8338,10 +8544,21 @@ function calcularM031() {
   if (teorOk === false)
     avisos.push(`Teor de CAP de ${fmt(teor, 2)} % fora do projeto ± 0,3 `
       + `(${fmt(projeto.teorMin, 2)} a ${fmt(projeto.teorMax, 2)} %).`);
-  if (agreg.origemGsb === 'projeto' && agreg.britas.some(b => Number.isFinite(b.gsb)))
-    avisos.push('O VAM usa o Gsb combinado do projeto: falta o Gsb de algum agregado com proporção na mistura.');
+  if (agreg.origemGsb === 'projeto' && (dens.lancada || agreg.britas.some(b => Number.isFinite(b.gsb))))
+    avisos.push('O VAM usa o Gsb combinado do projeto: falta a densidade de algum agregado com proporção na mistura.');
+  [...dens.britas.map(b => [b.nome, [b.sitDap, b.sitAbs, b.sitMassa]]),
+   [dens.po.nome, [dens.po.sitGsa, dens.po.sitGsb, dens.po.sitAbs]]].forEach(([nome, sits]) => {
+    if (sits.includes('REPETIR')) avisos.push(`Densidade de ${nome}: as duas determinações diferem mais que o permitido — repetir.`);
+    if (sits.includes('ABAIXO DO MÍNIMO')) avisos.push(`Densidade de ${nome}: massa seca abaixo do mínimo da Tabela 1 (DNER-ME 081/98).`);
+  });
+  if (dens.po.temperaturaOk === false && dens.lancada)
+    avisos.push('Densidade do pó: temperatura do ensaio fora de 25 ± 2 °C (DNIT 411/2021).');
+  agrGran.forEach(a => {
+    if (a.linhas.some(l => l.amostras.some(x => Number.isFinite(x.passante) && x.passante < -1e-9)))
+      avisos.push(`Granulometria de ${a.nome}: retido acumulado maior que o peso total — % passante negativa. Confira o peso total.`);
+  });
 
-  return { projeto, teor, granul, gmm, agreg, marshall, rtd, agrGran, situacoes, atende,
+  return { projeto, teor, granul, gmm, agreg, dens, marshall, rtd, agrGran, situacoes, atende,
            naoAtende: julgados.filter(v => !v).length, avisos };
 }
 
@@ -8423,24 +8640,56 @@ function desenharTelaM031(r) {
   });
   putM31('m31MRt', vM31(r.rtd.mpa, 3, 'MPa'));
 
-  // agregados
-  r.agreg.britas.forEach((b, i) => {
-    putM31('m31AgMin' + i, vM31(b.massaMinima, 0) + (b.verificacao === 'INSUFICIENTE'
-      ? ' <span class="badge fail">insuficiente</span>' : ''));
-    putM31('m31AgGsa' + i, vM31(b.gsa, 3));
-    putM31('m31AgGsb' + i, vM31(b.gsb, 3));
-    putM31('m31AgAbs' + i, vM31(b.absorcao, 2));
+  // densidades
+  r.dens.britas.forEach((b, i) => {
+    const mm = $('m31DnMin' + i);
+    if (mm) mm.value = typeof b.massaMinima === 'number' ? fmt(b.massaMinima, 0) + ' kg' : (b.massaMinima || '');
+    b.determinacoes.forEach((d, k) => {
+      putM31(`m31DnMhL${i}_${k}`, vM31(d.mhL, 1));
+      putM31(`m31DnDap${i}_${k}`, vM31(d.dap, 3));
+      putM31(`m31DnAbs${i}_${k}`, vM31(d.absorcao, 2));
+    });
+    putM31('m31DnDap' + i, vM31(b.dap, 3));
+    putM31('m31DnAbs' + i, vM31(b.absorcao, 2));
+    const selo = (t, rot) => t ? ` <span class="badge ${t === 'REPETIR' || t === 'ABAIXO DO MÍNIMO' ? 'fail' : 'ok'}">${rot}: ${t.toLowerCase()}</span>` : '';
+    putM31('m31DnSit' + i, (b.difDap !== null ? `|D1 − D2| = ${fmt(b.difDap, 3)} (≤ 0,02)` : '')
+      + selo(b.sitDap, 'D') + (b.difAbs !== null ? ` · |a1 − a2| = ${fmt(b.difAbs, 2)} %` : '') + selo(b.sitAbs, 'a')
+      + selo(b.sitMassa, 'massa'));
   });
+  const P = r.dens.po;
+  P.determinacoes.forEach((d, k) => {
+    putM31('m31DpGsa' + k, vM31(d.gsa, 3)); putM31('m31DpGsb' + k, vM31(d.gsb, 3)); putM31('m31DpAbs' + k, vM31(d.absorcao, 2));
+  });
+  putM31('m31DpGsa', vM31(P.gsa, 3)); putM31('m31DpGsb', vM31(P.gsb, 3)); putM31('m31DpAbs', vM31(P.absorcao, 2));
+  const sPo = (rot, dif, lim, t) => dif === null ? '' : `${rot} |Δ| ${fmt(dif, 3)} (≤ ${fmt(lim, 3)})`
+    + ` <span class="badge ${t === 'REPETIR' ? 'fail' : 'ok'}">${t.toLowerCase()}</span> `;
+  putM31('m31DpSit', sPo('Gsa', P.difGsa, 0.032, P.sitGsa) + sPo('Gsb', P.difGsb, 0.027, P.sitGsb) + sPo('Absorção', P.difAbs, 0.31, P.sitAbs)
+    + (P.temperaturaOk === false ? ' <span class="badge fail">temperatura fora de 25 ± 2 °C</span>' : ''));
+  const mats = estado.m031.projeto.materiais;
+  putM31('m31DnRes', [
+    ...r.dens.britas.map((b, i) => [['I', 'II'][i], b.nome, 'DNER-ME 081/98', vM31(b.densidade, 2), '—', vM31(b.absorcaoResultado, 1), mats[i]]),
+    ['III', P.nome, 'DNIT 411/2021-ME', vM31(P.densidade, 3), vM31(P.gsbResultado, 3), vM31(P.absorcaoResultado, 1), mats[2]],
+  ].map(([n, nome, norma, d, g, a, m]) => `<tr><td class="cap" data-rot="Agregado">${n} · ${atr(nome || '')}</td>
+    <td data-rot="Norma">${norma}</td><td class="forte" data-rot="Densidade">${d}</td><td class="num" data-rot="Gsb">${g}</td>
+    <td class="num" data-rot="Absorção %">${a}</td><td class="num" data-rot="Projeto (Da)">${vM31(m && m.densidadeAparente, 3)}</td></tr>`).join(''));
   putM31('m31AgComb', vM31(r.agreg.gsbCombinado, 3));
+  putM31('m31AgProj', vM31(par.gsbProjeto, 3));
   putM31('m31AgAdot', vM31(r.agreg.gsbAdotado, 3));
   putM31('m31AgOrigem', r.agreg.origemGsb === 'ensaio'
-    ? 'O VAM está usando o Gsb combinado destes ensaios.'
-    : 'Sem o Gsb de todos os agregados, o VAM usa o Gsb combinado do projeto — como a planilha.');
-  r.agrGran.forEach((a, k) => a.linhas.forEach((l, i) => {
-    putM31(`m31Ag${k}P1_${i}`, vM31(l.amostras[0].passante, 2));
-    putM31(`m31Ag${k}P2_${i}`, vM31(l.amostras[1].passante, 2));
-    putM31(`m31Ag${k}M_${i}`, vM31(l.media, 2));
-  }));
+    ? 'O VAM usa o Gsb combinado destas densidades (Σ% ÷ Σ %/densidade; pó, areia e cal com o Gsb do pó) — como a aba MARSHALL da planilha.'
+    : 'Sem a densidade de todos os agregados com proporção no projeto, o VAM usa o Gsb combinado do projeto — como a planilha.');
+  if (r.agreg.legado) r.agreg.britas.forEach((b, i) => {
+    putM31('m31AgGsb' + i, vM31(b.gsb, 3)); putM31('m31AgAbs' + i, vM31(b.absorcao, 2));
+  });
+  r.agrGran.forEach((a, k) => {
+    a.linhas.forEach((l, i) => {
+      putM31(`m31Ag${k}P1_${i}`, vM31(l.amostras[0].passante, 2));
+      putM31(`m31Ag${k}P2_${i}`, vM31(l.amostras[1].passante, 2));
+      putM31(`m31Ag${k}M_${i}`, vM31(l.media, 2));
+    });
+    const neg = a.linhas.some(l => l.amostras.some(x => Number.isFinite(x.passante) && x.passante < -1e-9));
+    putM31('m31AgAviso' + k, neg ? '<span class="badge fail">retido acumulado maior que o peso total — confira o peso total</span>' : '');
+  });
 
   // cartão do Resumo
   const req = (nome, v, casas, un, exig, ok) => `<div class="req ${ok === null ? '' : ok ? 'ok' : 'nao'}">
@@ -8534,9 +8783,9 @@ function folhaM031(pacote, pagina = 1, total = 1) {
 
   const faixaNome = s.projeto.identificacao.faixa || '—';
   const corpo1 =
-    secao('Granulometria da mistura · peso retido em cada peneira')
+    secao(r.granul.acumulado ? 'Granulometria da mistura · peso retido acumulado' : 'Granulometria da mistura · peso retido em cada peneira')
     + tabelaFolha([9, 8, 10, 10, 10, 11, 11, 11, 10, 10],
-      `<tr><th>Peneira</th><th>mm</th><th>Retido (g)</th><th>% retida</th><th>% acum.</th>
+      `<tr><th>Peneira</th><th>mm</th><th>${r.granul.acumulado ? 'Ret. acum. (g)' : 'Retido (g)'}</th><th>% retida</th><th>% acum.</th>
         <th>% passante</th><th>Trab. mín.</th><th>Trab. máx.</th><th>Faixa mín.</th><th>Faixa máx.</th></tr>`,
       granul)
     + `<div class="colunas2">
@@ -8571,9 +8820,62 @@ function folhaM031(pacote, pagina = 1, total = 1) {
     corpo: corpo1, obs: obs1, compacta: true,
   }];
 
-  /* segunda folha — os agregados, só quando houver o que mostrar */
-  const temAgreg = r.agreg.britas.some(b => Number.isFinite(b.A)) || r.agrGran.some(a => a.preenchida);
-  if (temAgreg) {
+  /* segunda folha — densidade dos agregados (aba DENSIDADE AGREGADOS) */
+  if (r.dens.lancada) {
+    const DB = r.dens.britas, P = r.dens.po;
+    const cel = (v, d) => `<td class="num">${typeof v === 'string' ? v : n(v, d)}</td>`;
+    const lG = (rot, un, f) => `<tr><td class="rot">${rot}</td><td class="num">${un}</td>${DB.map(b => f(b)).join('')}</tr>`;
+    const det2 = (b, k, d) => `${cel(b.determinacoes[0][k], d)}${cel(b.determinacoes[1][k], d)}${cel(k === 'dap' ? b.dap : k === 'absorcao' ? b.absorcao : '', d)}`;
+    const tabG = lG('Dimensão máxima característica', 'mm', b => `<td class="num" colspan="3">${n(b.dmc, 1)}</td>`)
+      + lG('Massa mínima da amostra (Tabela 1)', 'kg', b => `<td class="num" colspan="3">${typeof b.massaMinima === 'string' ? b.massaMinima : n(b.massaMinima, 0)}</td>`)
+      + lG('Temperatura da água', '°C', b => `<td class="num" colspan="3">${n(b.temperatura, 0)}</td>`)
+      + lG('Mh — massa sat. sup. seca, ao ar', 'g', b => det2(b, 'Mh', 1))
+      + lG('L — leitura, agregado submerso', 'g', b => det2(b, 'L', 1))
+      + lG('Ms — massa seca em estufa', 'g', b => det2(b, 'Ms', 1))
+      + lG('Mh − L', 'g', b => det2(b, 'mhL', 1))
+      + lG('Densidade aparente Dap = Ms/(Mh − L)', '—', b => det2(b, 'dap', 3))
+      + lG('Absorção a = (Mh − Ms)/Ms × 100', '%', b => det2(b, 'absorcao', 2))
+      + lG('|D1 − D2| ≤ 0,02', '—', b => `${cel(b.difDap, 3)}<td class="num" colspan="2">${b.sitDap || '—'}</td>`)
+      + lG('|a1 − a2| ≤ 0,25 % (a < 2 %)', '%', b => `${cel(b.difAbs, 2)}<td class="num" colspan="2">${b.sitAbs || '—'}</td>`)
+      + lG('Massa seca ≥ massa mínima', '—', b => `<td class="num" colspan="3">${b.sitMassa || '—'}</td>`);
+    const dP = k => P.determinacoes.map(d => d[k]);
+    const lP = (rot, un, k, d, dif, lim, sit) => `<tr><td class="rot">${rot}</td><td class="num">${un}</td>
+      ${dP(k).map(v => cel(v, d)).join('')}${cel(['gsa', 'gsb', 'mesa', 'mesb', 'absorcao'].includes(k) ? P[k] : '', d)}
+      ${cel(dif === undefined ? '' : dif, 3)}<td class="num">${lim || ''}</td><td class="num">${sit || ''}</td></tr>`;
+    const tabP = lP('A — massa seca em estufa', 'g', 'A', 2) + lP('B — picnômetro com água até a marca', 'g', 'B', 2)
+      + lP('B1 — massa da amostra SSS', 'g', 'B1', 2) + lP('C — picnômetro + amostra + água', 'g', 'C', 2)
+      + lP('Gsa = A/(A + B − C)', '—', 'gsa', 3, P.difGsa, '0,032', P.sitGsa)
+      + lP('Gsb = A/(B1 + B − C)', '—', 'gsb', 3, P.difGsb, '0,027', P.sitGsb)
+      + lP('MEsa = ρw · Gsa', 'g/cm³', 'mesa', 3) + lP('MEsb = ρw · Gsb', 'g/cm³', 'mesb', 3)
+      + lP('Absorção = 100 (B1 − A)/A', '%', 'absorcao', 2, P.difAbs, '0,31', P.sitAbs);
+    const resultados = [
+      ...DB.map((b, i) => [['I', 'II'][i], b.nome, 'DNER-ME 081/98', n(b.densidade, 2), '—', n(b.absorcaoResultado, 1)]),
+      ['III', P.nome, 'DNIT 411/2021-ME', n(P.densidade, 3), n(P.gsbResultado, 3), n(P.absorcaoResultado, 1)],
+    ].map(([a, m, no, d, g, ab]) => `<tr><td class="rot">Agregado ${a}</td><td>${atr(m || '')}</td><td>${no}</td>
+      <td class="num forte">${d}</td><td class="num">${g}</td><td class="num">${ab}</td></tr>`).join('');
+    paginas.push({
+      titulo: 'Absorção e Densidade de Agregados',
+      sub: 'DNER-ME 081/98 e DNIT 411/2021-ME · controle DNIT 031/2024-ES',
+      norma: 'DNER-ME 081/98 · DNIT 411/2021-ME',
+      extras: [['Gsb combinado', n(r.agreg.gsbCombinado, 3)], ['Gsb usado no VAM', n(r.agreg.gsbAdotado, 3)]],
+      corpo: secao('Agregados graúdos — DNER-ME 081/98 (pesagem hidrostática)')
+        + tabelaFolha([34, 6, ...DB.flatMap(() => [10, 10, 10])],
+          `<tr><th rowspan="2">Material</th><th rowspan="2">Un.</th>${DB.map(b => `<th colspan="3">${atr(b.nome)}${b.procedencia ? ' · ' + atr(b.procedencia) : ''}</th>`).join('')}</tr>
+           <tr>${DB.map(() => '<th>1ª det.</th><th>2ª det.</th><th>Média</th>').join('')}</tr>`, tabG)
+        + secao(`Agregado III — ${atr(P.nome || 'pó')} — DNIT 411/2021-ME (picnômetro de 500 mL) · ${n(P.temperatura, 0)} °C · água ${n(P.rhoAgua, 4)} g/cm³`)
+        + tabelaFolha([30, 7, 9, 9, 9, 9, 9, 9],
+          '<tr><th>Determinação</th><th>Un.</th><th>1ª det.</th><th>2ª det.</th><th>Média</th><th>|Δ|</th><th>Limite d2s</th><th>Situação</th></tr>', tabP)
+        + secao('Resultados')
+        + tabelaFolha([16, 26, 20, 13, 12, 13],
+          '<tr><th>Agregado</th><th>Material</th><th>Norma</th><th>Densidade</th><th>Gsb</th><th>Absorção (%)</th></tr>', resultados)
+        + paresFolha([
+          ['Gsb combinado (ensaio)', n(r.agreg.gsbCombinado, 3), true],
+          ['Gsb de projeto', n(par.gsbProjeto, 3)],
+          ['Gsb usado no VAM', n(r.agreg.gsbAdotado, 3), true],
+        ], 3),
+      obs: '',
+    });
+  } else if (r.agreg.legado) {
     const B = r.agreg.britas;
     const lAg = (rot, f, casas) => `<tr><td class="rot">${rot}</td>${B.map(b =>
       `<td class="num">${typeof b[f] === 'string' ? b[f] : n(b[f], casas)}</td>`).join('')}</tr>`;
@@ -8584,33 +8886,41 @@ function folhaM031(pacote, pagina = 1, total = 1) {
       + lAg('Gsa — densidade relativa real', 'gsa', 3) + lAg('Gsb — densidade relativa aparente', 'gsb', 3)
       + lAg('MEsa — massa espec. real (g/cm³)', 'mesa', 3) + lAg('MEsb — massa espec. aparente (g/cm³)', 'mesb', 3)
       + lAg('Absorção (%)', 'absorcao', 2) + lAg('Proporção na mistura (%)', 'proporcao', 1);
-    const G = r.agrGran;
+    paginas.push({
+      titulo: 'Agregados da Mistura Asfáltica', sub: 'Massa específica e absorção do agregado graúdo',
+      norma: 'DNIT 413/2021-ME',
+      extras: [['Gsb combinado', n(r.agreg.gsbCombinado, 3)], ['Gsb usado', n(r.agreg.gsbAdotado, 3)]],
+      corpo: secao('Massa específica, densidade relativa e absorção do agregado graúdo · DNIT 413/2021-ME')
+        + tabelaFolha([46, ...B.map(() => 54 / B.length)],
+          `<tr><th>Parâmetro</th>${B.map(b => `<th>${atr(b.nome)}</th>`).join('')}</tr>`, tab413)
+        + paresFolha([['Gsb do pó / miúdo', n(s.agreg.poGsb, 3)], ['Gsb combinado (Eq. 5)', n(r.agreg.gsbCombinado, 3), true],
+          ['Gsb de projeto', n(par.gsbProjeto, 3)], ['Gsb usado no VAM', n(r.agreg.gsbAdotado, 3), true]], 4),
+      obs: '',
+    });
+  }
+
+  /* terceira folha — granulometria dos agregados, as três (ou mais, nos ensaios antigos) numa tabela */
+  const G = r.agrGran.filter(a => a.preenchida);
+  if (G.length) {
     const tabGran = MARSHALL31.PENEIRAS_AGREGADO.map((pn, i) => `<tr>
       <td class="rot">${pn.nome}</td><td class="num">${mmTxt(pn.mm)}</td>
       ${G.map(a => `<td class="num">${n(a.linhas[i].amostras[0].passante, 1)}</td>
         <td class="num">${n(a.linhas[i].amostras[1].passante, 1)}</td>
         <td class="num forte">${n(a.linhas[i].media, 1)}</td>`).join('')}</tr>`).join('');
-    const corpo2 =
-      secao('Massa específica, densidade relativa e absorção do agregado graúdo · DNIT 413/2021-ME')
-      + tabelaFolha([46, ...B.map(() => 54 / B.length)],
-        `<tr><th>Parâmetro</th>${B.map(b => `<th>${atr(b.nome)}</th>`).join('')}</tr>`, tab413)
-      + paresFolha([
-        ['Gsb do pó / miúdo', n(s.agreg.poGsb, 3)],
-        ['Gsb combinado (Eq. 5)', n(r.agreg.gsbCombinado, 3), true],
-        ['Gsb de projeto', n(par.gsbProjeto, 3)],
-        ['Gsb usado no VAM', n(r.agreg.gsbAdotado, 3), true],
-      ], 4)
-      + secao('Granulometria dos agregados · DNIT 412-ME · % passante (amostras 1 e 2 e média)')
-      + tabelaFolha([10, 6, ...G.flatMap(() => [7, 7, 7.5])],
-        `<tr><th rowspan="2">Peneira</th><th rowspan="2">mm</th>${G.map(a =>
-          `<th colspan="3">${atr(a.nome)}</th>`).join('')}</tr>
-         <tr>${G.map(() => '<th>Am. 1</th><th>Am. 2</th><th>Média</th>').join('')}</tr>`, tabGran);
+    const tot = G.map(a => { const k = r.agrGran.indexOf(a), am = s.agrGran[k].amostras;
+      return [`Peso total · ${atr(a.nome)}`, `${n(am[0].total, 1)} / ${n(am[1].total, 1)} g`]; });
     paginas.push({
-      titulo: 'Agregados da Mistura Asfáltica',
-      sub: 'Massa específica, absorção e granulometria',
-      norma: 'DNIT 413/2021-ME · DNIT 412-ME · DNIT 418-EM',
-      extras: [['Gsb combinado', n(r.agreg.gsbCombinado, 3)], ['Gsb usado', n(r.agreg.gsbAdotado, 3)]],
-      corpo: corpo2, obs: '',
+      titulo: 'Agregados — Análise Granulométrica',
+      sub: 'DNIT 412-ME · % passante (amostras 1 e 2 e média)',
+      norma: 'DNIT 412-ME · controle DNIT 031/2024-ES',
+      extras: [],
+      corpo: secao('Granulometria dos agregados · retido acumulado → % passante')
+        + tabelaFolha([10, 6, ...G.flatMap(() => [84 / G.length / 3, 84 / G.length / 3, 84 / G.length / 3])],
+          `<tr><th rowspan="2">Peneira</th><th rowspan="2">mm</th>${G.map(a =>
+            `<th colspan="3">${atr(a.nome)}</th>`).join('')}</tr>
+           <tr>${G.map(() => '<th>Am. 1</th><th>Am. 2</th><th>Média</th>').join('')}</tr>`, tabGran)
+        + paresFolha(tot, Math.min(3, tot.length)) + '<i class="linhas-altas" hidden></i>',
+      obs: '',
     });
   }
   if (!pagina) return paginas.map(() => '');
@@ -10357,8 +10667,7 @@ function htmlFichasRascunho(abas = fichasDoModo(), preenchido = null) {
     ? `<span class="mao">${atr(preenchido.valores[c])}</span>` : '';
   const CB = k => preenchido && preenchido.cab && preenchido.cab[k] ? `<span class="mao">${atr(preenchido.cab[k])}</span>` : '';
   const logo = (typeof logoAtual === 'function' && logoAtual()) || '';
-  const pagina = f => {
-    const um = b => {
+  const umBloco = (f, b) => {
       const selo = '<em class="tag-conta">conta</em>';
       if (b.tipo === 'campos') return `<h3>${b.titulo}</h3><div class="campos">${b.campos.map(([rot, c, tipo, larg]) => tipo === 'conta'
         ? `<div class="c conta${larg ? ' l' + larg : ''}"><span>${rot} ${selo}</span><div class="q">${V(`conta:${f.aba}:${rot}`)}</div></div>`
@@ -10366,28 +10675,39 @@ function htmlFichasRascunho(abas = fichasDoModo(), preenchido = null) {
       // `contas`: colunas extras só para a conta do operador (ex.: % que passa ao lado do retido)
       const extras = b.contas || [];
       const nCol = b.colunas.length + extras.length;
-      return `<h3>${b.titulo}</h3><table${nCol >= 6 ? ' class="muitas"' : ''}><thead><tr><th></th>${b.colunas.map(c => `<th>${c}</th>`).join('')}${extras.map(c => `<th class="conta">${c} ${selo}</th>`).join('')}</tr></thead>
+      // `larguras` (%): primeira é a coluna do rótulo — composição do projeto tem nome e procedência largos
+      const cols = b.larguras ? `<colgroup>${b.larguras.map(l => `<col style="width:${l}%">`).join('')}</colgroup>` : '';
+      return `<h3>${b.titulo}</h3><table${nCol >= 6 ? ' class="muitas"' : ''}>${cols}<thead><tr><th></th>${b.colunas.map(c => `<th>${c}</th>`).join('')}${extras.map(c => `<th class="conta">${c} ${selo}</th>`).join('')}</tr></thead>
         <tbody>${b.linhas.map(([rot, fn]) => fn
           ? `<tr><th>${rot}</th>${b.idx.map(ix => `<td>${V(fn(ix))}</td>`).join('')}${extras.map(c => `<td class="conta">${V(`conta:${f.aba}:${rot}:${c}`)}</td>`).join('')}</tr>`
           : `<tr class="conta"><th>${rot} ${selo}</th>${b.idx.map(ix => `<td>${V(`conta:${f.aba}:${b.titulo}:${rot}:${ix}`)}</td>`).join('')}${extras.map(() => '<td></td>').join('')}</tr>`).join('')}</tbody></table>`;
-    };
+  };
+  const pagina = f => {
+    // `quebra` num bloco começa outra folha da mesma ficha (o projeto do Marshall 031 tem três)
+    const grupos = [];
+    f.blocos.forEach(b => { if (b.quebra || !grupos.length) grupos.push([]); grupos[grupos.length - 1].push(b); });
+    return grupos.map((g, k) => folhaFicha(f, g, k, grupos.length)).join('');
+  };
+  const folhaFicha = (f, lista, k, total) => {
+    const um = b => umBloco(f, b);
     // blocos marcados como par ficam lado a lado (peneiramento grosso e fino)
     let blocos = '';
-    for (let i = 0; i < f.blocos.length; i++) {
-      const b = f.blocos[i], n = f.blocos[i + 1];
+    for (let i = 0; i < lista.length; i++) {
+      const b = lista[i], n = lista[i + 1];
       if (b.par && n && n.par) { blocos += `<div class="lado"><div>${um(b)}</div><div>${um(n)}</div></div>`; i++; }
       else blocos += um(b);
     }
     const linhasGrade = f.blocos.filter(b => b.tipo === 'grade').reduce((s, b) => s + b.linhas.length, 0);
     const compacta = linhasGrade >= 12 ? ' compacta' : '';
+    const folhaN = total > 1 ? ` · folha ${k + 1} de ${total}` : '';
     return `<section class="pg${compacta}">
-      <header>${logo ? `<img src="${logo}" alt="">` : ''}<div><b>RASCUNHO</b><h1>${f.titulo}</h1></div>
-        <div class="cod">${f.codigo}</div></header>
+      <header>${logo ? `<img src="${logo}" alt="">` : ''}<div><b>RASCUNHO${folhaN.toUpperCase()}</b><h1>${f.titulo}</h1></div>
+        <div class="cod">${f.codigo}${total > 1 ? `<small>${k + 1}/${total}</small>` : ''}</div></header>
       <div class="idt" style="grid-template-columns:${cabDaFicha(f).map(c => c[1] === 'laboratorista' ? '1.6fr' : c[3] === 'data' ? '1.3fr' : '1fr').join(' ')}">${
         cabDaFicha(f).map(([rot, k, , tipo]) => `<div><span>${rot}</span><div class="q${tipo === 'data' && !CB(k) ? ' data' : ''}">${CB(k) || (tipo === 'data' ? '<i>dia</i>/<i>mês</i>/<i>ano</i>' : '')}</div></div>`).join('')}</div>
       <p class="reg">Caneta preta · um valor por quadro · vírgula bem marcada (106,43) · nada fora dos quadros · erro: risque e escreva ao lado, dentro do quadro.${f.blocos.some(b => (b.contas || []).length || (b.linhas || []).some(l => !l[1]) || (b.campos || []).some(c => c[2] === 'conta')) ? '<br><b>Quadros cinza e tracejados (CONTA)</b> são para a sua conta à mão — o app não lê esses valores: ele recalcula tudo a partir das pesagens.' : ''}</p>
       ${blocos}
-      <footer>${f.codigo} · ${f.titulo} · fotografe a folha inteira, de frente, com boa luz</footer></section>`;
+      <footer>${f.codigo}${folhaN} · ${f.titulo} · fotografe a folha inteira, de frente, com boa luz${total > 1 ? ' — leia as ' + total + ' folhas juntas (escolha as ' + total + ' fotos)' : ''}</footer></section>`;
   };
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Fichas de rascunho — ${atr((MODOS[(fichaDaAba(abas[0]) || {}).modo] || {}).nome || 'ensaio')}</title><style>
@@ -10398,6 +10718,7 @@ function htmlFichasRascunho(abas = fichasDoModo(), preenchido = null) {
   header{display:flex;align-items:center;gap:6mm;border-bottom:1.2mm solid #000;padding-bottom:3mm}
   header img{height:16mm} header b{font-size:11pt;letter-spacing:2px} header h1{font-size:19pt;margin:1mm 0 0}
   .cod{margin-left:auto;font:700 16pt/1 'Courier New',monospace;border:0.8mm solid #000;padding:2mm 3mm;white-space:nowrap}
+  .cod small{display:block;font-size:9pt;text-align:center;margin-top:1mm}
   .lado{display:grid;grid-template-columns:1fr 1fr;gap:5mm} .lado tbody th{width:22mm}
   .compacta td{height:9.2mm} .compacta .q{height:9.5mm} .compacta h3{margin:3mm 0 1mm}
   .idt{display:grid;grid-template-columns:1fr 1fr 1.3fr 1.6fr;gap:3mm;margin:4mm 0 2mm}
@@ -10931,14 +11252,28 @@ const IDENT_CAUQ = [
   fAt('Cota', 'cota', _q('data-mq', 'cota'), 'texto'),
 ];
 
-const nomesAgreg031 = () => _idx(4).map(k => {
+const nAgreg031 = () => Math.max(1, (((estado.m031 || {}).agrGran) || []).length || 3);
+const nomesAgreg031 = () => _idx(nAgreg031()).map(k => {
   const n = (((estado.m031 || {}).agrGran || [])[k] || {}).nome;
   return n ? String(n).slice(0, 14) : `Agregado ${k + 1}`;
 });
-const nomesBritas031 = () => _idx(2).map(k => {
-  const n = ((((estado.m031 || {}).agreg || {}).britas || [])[k] || {}).nome;
-  return n ? String(n).slice(0, 16) : `Brita ${k + 1}`;
+const nomesDens031 = () => _idx(2).map(k => {
+  const n = (((((estado.m031 || {}).dens || {}).britas) || [])[k] || {}).nome;
+  return n ? String(n).replace(/\s*mm$/i, '').slice(0, 14) : `Brita ${k + 1}`;
 });
+const nomesMat031 = () => _idx(5).map(k => {
+  const n = (((((estado.m031 || {}).projeto || {}).materiais) || [])[k] || {}).nome;
+  return n ? String(n).replace(/\s*\(.*\)$/, '').slice(0, 12) : `Material ${k + 1}`;
+});
+const _p31 = c => _q('data-m31', 'projeto.' + c);
+/* projeto de mistura (aba INSERIR INFORMAÇÕES): [rótulo, chave, passo] — a mesma ordem da tela */
+const PARAM_M031 = [
+  ['Teor ótimo de CAP (%)', 'teorProjeto'], ['Massa espec. CAP (g/cm³)', 'densidadeCap'], ['Dmm — Rice (g/cm³)', 'riceProjeto'],
+  ['Dens. aparente Gmb (g/cm³)', 'gmbProjeto'], ['Volume de vazios (%)', 'vaziosProjeto'], ['VAM (%)', 'vamProjeto'],
+  ['RBV (%)', 'rbvProjeto'], ['Estabilidade (kgf)', 'estabilidadeProjeto'], ['Fluência (mm)', 'fluenciaProjeto'],
+  ['Relação fíler/asfalto', 'filerAsfaltoProjeto'], ['RT 25 °C (MPa)', 'rtProjeto'], ['Gsb combinado (g/cm³)', 'gsbProjeto'],
+  ['Temp. usinagem (°C)', 'tempUsinagem'], ['Temp. compactação (°C)', 'tempCompactacao'], ['Nº de golpes', 'golpes'],
+  ['TNM da faixa (mm)', 'tnm']];
 const fracoesForma = () => {
   const g = ((estado.insumos || {}).forma || {}).graduacao || 'C';
   return ((typeof INSUMOS !== 'undefined' && INSUMOS.GRADUACOES_FORMA[g]) || []).map(x => x.fracao + ' mm');
@@ -10979,7 +11314,7 @@ const FICHAS_OUTRAS = [
       .map(([r, f]) => lin(r, `ea.${f}`, i => `[data-cq="ea"][data-i="${i}"][data-f="${f}"]`)) }] },
 
   /* ---------------- Marshall 031/2024 ---------------- */
-  { aba: 'm31proj', modo: 'm031', codigo: PF + '-M1', titulo: 'Marshall 031 — obra e medição', primeira: true, cabs: CAB_CAUQ,
+  { aba: 'm31proj', modo: 'm031', codigo: PF + '-M1', titulo: 'Marshall 031 — obra, medição e projeto', primeira: true, cabs: CAB_CAUQ,
     blocos: [
       { tipo: 'campos', titulo: 'Obra', campos: [
         fAt('Obra', 'obra', _q('data-mq', 'obra'), 'texto', 2), fAt('Cliente', 'cliente', _q('data-mq', 'cliente'), 'texto'),
@@ -10988,6 +11323,25 @@ const FICHAS_OUTRAS = [
       { tipo: 'campos', titulo: 'Medição', campos: [
         fAt('Medição nº', 'medicao', _q('data-mq', 'numeroMedicao'), 'texto'), fAt('Material', 'material', _q('data-mq', 'material'), 'texto'),
         fAt('Usina', 'usina', _q('data-mq', 'usina'), 'texto'), fAt('Observações', 'obs', _q('data-mq', 'observacoes'), 'texto', 3)] },
+      { tipo: 'campos', titulo: 'Identificação do projeto de mistura', campos: [
+        fAt('Projeto / traço', 'proj.projeto', _p31('identificacao.projeto'), 'texto', 3),
+        fAt('Rodovia', 'proj.rodovia', _p31('identificacao.rodovia'), 'texto', 2), fAt('Data do projeto', 'proj.dataProjeto', _p31('identificacao.dataProjeto'), 'texto'),
+        fAt('Trecho', 'proj.trecho', _p31('identificacao.trecho'), 'texto', 2), fAt('Faixa', 'proj.faixa', _p31('identificacao.faixa'), 'texto'),
+        fAt('Camada', 'proj.camada', _p31('identificacao.camada'), 'texto', 2), fAt('Ligante', 'proj.ligante', _p31('identificacao.ligante'), 'texto'),
+        fAt('Empresa (projeto)', 'proj.empresa', _p31('identificacao.empresa'), 'texto', 2), fAt('Pedreira', 'proj.pedreira', _p31('identificacao.pedreira'), 'texto')] },
+      { tipo: 'campos', quebra: true, titulo: 'Parâmetros de projeto (DNIT 031/2024 · Tabelas 4 e 5)',
+        campos: PARAM_M031.map(([r, k]) => fAt(r, 'proj.' + k, _p31('parametros.' + k))) },
+      { tipo: 'grade', titulo: 'Composição da mistura', colunas: ['Material', 'Procedência', '% agregados', 'Dr', 'Da'], idx: _idx(5),
+        larguras: [6, 30, 25, 13, 13, 13],
+        tipos: ['texto', 'texto', 'num', 'num', 'num'],
+        linhas: _idx(5).map(m => [String(m + 1), c => `proj.mat.${m}.${['nome', 'procedencia', 'percentual', 'densidadeReal', 'densidadeAparente'][c]}`, 'num', '',
+          c => _p31(`materiais.${m}.${['nome', 'procedencia', 'percentual', 'densidadeReal', 'densidadeAparente'][c]}`)]) },
+      { tipo: 'campos', titulo: 'Ligante', campos: [
+        fAt('Ligante (CAP)', 'proj.cap', _p31('ligante.nome'), 'texto', 2), fAt('Procedência do ligante', 'proj.capProc', _p31('ligante.procedencia'), 'texto')] },
+      { tipo: 'grade', quebra: true, titulo: 'Granulometria de projeto (% passante) e faixa',
+        colunas: () => [...nomesMat031(), 'Tol. ±', 'Faixa mín.', 'Faixa máx.'], idx: _idx(8),
+        linhas: PEN_CAUQ.map((pn, li) => [pn, c => c < 5 ? `proj.pas.${c}.${li}` : `proj.${['tol', 'fmin', 'fmax'][c - 5]}.${li}`, 'num', '',
+          c => c < 5 ? _p31(`materiais.${c}.passantes.${li}`) : _p31(c === 5 ? `tolerancias.${li}` : `limites.${li}.${c - 6}`)]) },
     ] },
   { aba: 'm31granul', modo: 'm031', codigo: PF + '-M2', titulo: 'Marshall 031 — teor e granulometria', cabs: CAB_CAUQ,
     blocos: [
@@ -10997,7 +11351,7 @@ const FICHAS_OUTRAS = [
       { tipo: 'campos', titulo: 'Teor de CAP', campos: [
         fAt('Peso inicial (g)', 'betume.inicial', _q('data-m31', 'betume.pesoInicial')), fAt('Peso final (g)', 'betume.final', _q('data-m31', 'betume.pesoFinal')),
         fAt('Fator de calibração', 'betume.fator', _q('data-m31', 'betume.fatorCalibracao'))] },
-      { tipo: 'grade', titulo: 'Granulometria — retido (g)', colunas: ['Retido (g)'], idx: [0],
+      { tipo: 'grade', titulo: 'Granulometria — retido ACUMULADO (g)', colunas: ['Retido acumulado (g)'], idx: [0],
         linhas: PEN_CAUQ.map((n, k) => [n, () => `granul.${k}`, 'num', 'g', () => _q('data-m31', `granul.retidos.${k}`)]) },
     ] },
   { aba: 'm31rice', modo: 'm031', codigo: PF + '-M3', titulo: 'Marshall 031 — densidade máxima (Rice)', cabs: CAB_CAUQ,
@@ -11017,13 +11371,25 @@ const FICHAS_OUTRAS = [
     blocos: [{ tipo: 'grade', titulo: 'Corpos de prova', colunas: ROMANOS.map(r => 'CP ' + r), idx: [0, 1, 2], linhas: [
       ['Espessura (cm)', 'espessura'], ['Diâmetro (cm)', 'diametro'], ['Leitura da prensa', 'leitura']]
       .map(([r, f]) => lin(r, `rtd.${f}`, i => _q('data-m31', `rtd.${i}.${f}`))) }] },
-  { aba: 'm31agreg', modo: 'm031', codigo: PF + '-M6', titulo: 'Marshall 031 — agregados', cabs: CAB_CAUQ,
+  { aba: 'm31dens', modo: 'm031', codigo: PF + '-M6', titulo: 'Marshall 031 — densidade dos agregados', cabs: CAB_CAUQ,
     blocos: [
-      { tipo: 'grade', titulo: 'Massa específica do graúdo', colunas: nomesBritas031, idx: [0, 1], linhas: [
-        ['Temperatura da água (°C)', 'temperatura'], ['A — seco (g)', 'A'], ['B — sat. sup. seca (g)', 'B'], ['C — imerso (g)', 'C']]
-        .map(([r, f]) => lin(r, `brita.${f}`, i => _q('data-m31', `agreg.britas.${i}.${f}`))) },
-      { tipo: 'grade', titulo: 'Granulometria — retido ACUMULADO (g), duas amostras por agregado',
-        colunas: () => nomesAgreg031().flatMap(n => [`${n} · 1`, `${n} · 2`]), idx: _idx(8),
+      { tipo: 'grade', titulo: 'Graúdos — DNER-ME 081/98', colunas: () => nomesDens031(), idx: [0, 1], linhas: [
+        lin('Dimensão máx. caract. (mm)', 'dens.dmc', i => _q('data-m31', `dens.britas.${i}.dmc`)),
+        lin('Temperatura da água (°C)', 'dens.temp', i => _q('data-m31', `dens.britas.${i}.temperatura`))] },
+      { tipo: 'grade', titulo: 'Graúdos — pesagens (g)', colunas: () => nomesDens031().flatMap(n => [`${n} · 1ª`, `${n} · 2ª`]), idx: _idx(4),
+        linhas: [['Mh — sat. sup. seca, ao ar', 'Mh'], ['L — leitura submersa', 'L'], ['Ms — seca em estufa', 'Ms']].map(([r, f]) =>
+          [r, i => `dens.b${Math.floor(i / 2)}.${i % 2}.${f}`, 'num', 'g', i => _q('data-m31', `dens.britas.${Math.floor(i / 2)}.det.${i % 2}.${f}`)]) },
+      { tipo: 'campos', titulo: 'Pó — DNIT 411/2021-ME (picnômetro 500 mL)', campos: [
+        fAt('Temperatura do ensaio (°C)', 'dens.po.temp', _q('data-m31', 'dens.po.temperatura')),
+        fAt('Massa espec. da água ρw', 'dens.po.rho', _q('data-m31', 'dens.po.rhoAgua'))] },
+      { tipo: 'grade', titulo: 'Pó — pesagens (g)', colunas: ['1ª determinação', '2ª determinação'], idx: [0, 1], linhas: [
+        ['A — seca em estufa', 'A'], ['B — picnômetro + água', 'B'], ['B1 — amostra SSS', 'B1'], ['C — pic. + amostra + água', 'C']]
+        .map(([r, f]) => lin(r, `dens.po.${f}`, i => _q('data-m31', `dens.po.det.${i}.${f}`))) },
+    ] },
+  { aba: 'm31agran', modo: 'm031', codigo: PF + '-M7', titulo: 'Marshall 031 — granulometria dos agregados', cabs: CAB_CAUQ,
+    blocos: [
+      { tipo: 'grade', titulo: 'Retido ACUMULADO (g), duas amostras por agregado',
+        colunas: () => nomesAgreg031().flatMap(n => [`${n} · 1`, `${n} · 2`]), idx: () => _idx(2 * nAgreg031()),
         linhas: [['Peso total (g)', 'total'], ...PEN_AGREG.map((n, k) => [n, `ret${k}`])].map(([r, f], k) =>
           [r, i => `agr.${Math.floor(i / 2)}.${i % 2}.${f}`, 'num', 'g',
            i => _q('data-m31', `agrGran.${Math.floor(i / 2)}.amostras.${i % 2}.${k === 0 ? 'total' : 'retidos.' + (k - 1)}`)]) },
@@ -14449,7 +14815,7 @@ const MODOS = {
     familia: 'cauq',
     nome: 'Marshall 031/2024',
     desc: 'O ensaio no formato da planilha de controle: projeto de mistura já preenchido, '
-        + 'teor, granulometria, Rice, Marshall, tração diametral e os agregados.',
+        + 'teor, granulometria, Rice, Marshall, tração diametral, densidades e granulometria dos agregados.',
     folhas: 2,
     ensaios: [
       ['Projeto de mistura e faixa de trabalho', 'DNIT 031/2024'],
@@ -14458,8 +14824,9 @@ const MODOS = {
       ['Densidade máxima — Rice test',         'DNIT 427/2020'],
       ['Estabilidade Marshall',                'DNIT 447/2024 · 428/2022'],
       ['Resistência à tração diametral',       'DNIT 136/2018'],
-      ['Massa específica do agregado graúdo',  'DNIT 413/2021'],
-      ['Granulometria dos agregados',          'DNIT 412-ME · 418-EM'],
+      ['Densidade e absorção dos graúdos',     'DNER-ME 081/98'],
+      ['Densidade e absorção do pó',           'DNIT 411/2021-ME'],
+      ['Granulometria dos agregados',          'DNIT 412-ME'],
     ],
   },
   aplicacao: {
@@ -17770,8 +18137,10 @@ function mesclarComPadrao(padrao, salvo) {
 
 /** Repõe um ensaio fotografado e recalcula tudo. */
 function aplicarEnsaio(foto) {
-  estado = mesclarComPadrao(JSON.parse(JSON.stringify(PADRAO)),
-                            JSON.parse(JSON.stringify(foto.estado || {})));
+  const salvo = JSON.parse(JSON.stringify(foto.estado || {}));
+  // ensaio salvo num formato antigo: marca antes do padrão preencher o que falta
+  if (typeof migrarEstadoM031 === 'function') migrarEstadoM031(salvo);
+  estado = mesclarComPadrao(JSON.parse(JSON.stringify(PADRAO)), salvo);
   if (!FAMILIAS[estado.familia]) estado.familia = 'solos';   // ensaios salvos antes das famílias
   if (!MODOS[estado.modo]) estado.modo = FAMILIAS[estado.familia].modoPadrao;
   if (!MODOS_DA_FAMILIA[estado.familia].includes(estado.modo))
